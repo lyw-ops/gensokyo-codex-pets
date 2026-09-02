@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Local environments and caches
+.env
+.env.*
+!.env.example
+.cache/
+__pycache__/
+*.py[cod]
+node_modules/
+
+# Generated pet build and QA output
+build/
+dist/
+tmp/
+pets/*/generated/
+pets/*/qa/
+
+# Keep source sprites and reviewed metadata trackable.
+!pets/*/sprites/
+!pets/*/metadata/
