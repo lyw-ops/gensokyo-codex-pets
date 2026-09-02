@@ -38,12 +38,12 @@ WorkloadSnapshot
 
 | Observed active tasks | `ReimuFoodTier` | Visual meaning |
 | ---: | ---: | --- |
-| `0` | `0` | no active-task serving |
-| `1` | `1` | one task-linked serving |
-| `2` | `2` | two task-linked servings |
-| `3` | `3` | three task-linked servings |
-| `4` | `4` | four task-linked servings |
-| `5` or more | `5` | five task-linked servings; visual capacity reached |
+| `0` | `0` | tea-only, nearly empty table |
+| `1` | `1` | compact first meal |
+| `2` | `2` | small set meal |
+| `3` | `3` | full set meal |
+| `4` | `4` | large feast |
+| `5` or more | `5` | maximum table-filling banquet; visual capacity reached |
 
 This mapping is the design contract, not a configurable table of workload ranges. It must be implemented once at the policy boundary. Animation and rendering code consume `ReimuFoodTier` and must not introduce named bands, alternate thresholds, or special mappings for particular rows.
 
@@ -61,16 +61,18 @@ A configuration may control transition timing and unavailable-source behavior wi
 
 ## Food composition contract
 
-The low table has five stable, ordered serving slots. Tier `n` occupies the first `n` slots for `0 ≤ n ≤ 5`.
+`ReimuFoodTier` is an ordinal composition choice, not a literal food-item counter. A tier may contain more onigiri or dishes than its numeric value. The six plates communicate progression through the combined silhouette of the meal, dish variety, tabletop occupancy, and Reimu's expression and eating pose.
 
-- Tier `0` has no task-linked serving.
-- Each step from tier `0` through tier `5` adds exactly one primary serving.
-- Onigiri is the preferred primary token because it remains countable at desktop-pet scale.
-- Tea or another approved base prop may remain visible at every tier, but it is not a task token.
-- Soup, side dishes, skewers, crumbs, and similar accents may add character only when the five primary serving slots remain unambiguous.
-- Tier `5` may add a controlled maximum-tier expression or abundance accent, but it must not suggest a sixth countable serving.
+- Tier `0` keeps the table nearly empty, with tea as the sole food-related anchor and Reimu not yet eating.
+- Tiers `1` through `3` progress from a compact first meal to a small and then full set meal.
+- Tier `4` introduces a large feast with a substantial hot dish and wider table coverage.
+- Tier `5` is the maximum banquet, using the broadest approved dish variety and a comic tearful performance.
+- Tea should remain a stable anchor across the family when cell space permits.
+- A held onigiri should unify tiers `1` through `5`; supporting dishes expand outward from stable zones rather than jumping randomly between frames.
+- Adjacent tiers must remain distinguishable at intended display size even when individual foods lose detail.
+- Tier `5` must look saturated without implying any exact count above five.
 
-Every plate shares Reimu's construction, palette, camera, table footprint, baseline, prop scale, and serving-slot coordinates. Source and export names may use `tier-0` through `tier-5`; they must not encode uncapped counts such as `tier-6`.
+Every plate shares Reimu's construction, palette, camera, table footprint, baseline, and prop scale. Source and export names may use `tier-0` through `tier-5`; they must not encode uncapped counts such as `tier-6`. The pet art must not include an explanatory task-number sign: that was a visual-prototype aid, not part of the character asset.
 
 ## Separation of concerns
 
@@ -120,5 +122,6 @@ Priority remains consistent with Codex: needs input, blocked, ready/unread, then
 - Negative, fractional, missing, and malformed counts select the explicit degraded fallback rather than being coerced.
 - Temporary source loss selects tier `0`, exposes degraded status, and does not claim an observed zero.
 - Transition timing does not redefine or merge count tiers.
-- All six plates preserve stable serving positions, and adjacent tiers differ by one readable primary serving.
+- All six plates preserve recurring visual anchors and form a clearly ordered meal-density progression at intended display size.
+- No plate relies on embedded task-count text or a literal one-item-per-task rule.
 - Standard Codex state priority remains readable at every tier.

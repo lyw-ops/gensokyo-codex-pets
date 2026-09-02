@@ -22,7 +22,9 @@ The core scene is Reimu at a small low table. Food and work coexist in one compa
 - onigiri;
 - a small tea cup or yunomi;
 - miso soup;
-- one small side-dish plate;
+- small side-dish plates such as pickles or edamame;
+- one compact noodle bowl at a high food tier;
+- tamagoyaki or another rectangular side with a strong silhouette;
 - skewers and compact snacks;
 - a short task slip or rolled note for review, if it is established as part of the base prop vocabulary;
 - an optional yin-yang orb for a jump/flying accent.
@@ -64,14 +66,16 @@ The visual progression uses six discrete, numbered compositions:
 
 | `ReimuFoodTier` | Active-task meaning | Composition direction | Reimu read |
 | ---: | ---: | --- | --- |
-| `0` | exactly 0 | no task-linked serving; only approved invariant props may remain | resting, observant |
-| `1` | exactly 1 | one clearly readable serving | unhurried eating |
-| `2` | exactly 2 | two clearly readable servings | comfortably occupied |
-| `3` | exactly 3 | three clearly readable servings | focused, brisk rhythm |
-| `4` | exactly 4 | four clearly readable servings | table feels full but ordered |
-| `5` | 5 or more | five readable primary servings; compact abundance accents may reinforce the cap | cute, tearful determination rather than distress |
+| `0` | exactly 0 | nearly empty table with tea as the sole food-related anchor | chin-in-hand waiting, quiet boredom |
+| `1` | exactly 1 | compact first meal centered on a held onigiri and tea | eating begins; strong comic relief or emotion is possible |
+| `2` | exactly 2 | small set meal with onigiri, soup, a small side, and tea | occupied but still contained |
+| `3` | exactly 3 | full set meal with a larger staple group and several side dishes | visibly enthusiastic |
+| `4` | exactly 4 | large feast adding a substantial hot dish and wider table coverage | delighted effort, with a restrained sweat cue possible |
+| `5` | 5 or more | maximum table-filling banquet with the broadest approved dish variety | streaming comic tears while still eagerly eating |
 
-Each higher tier adds one task-linked serving in a stable slot. Onigiri is the preferred primary token because its silhouette survives at pet scale; tea, dishes, or condiments may be invariant or decorative only if they cannot be mistaken for additional task tokens. Tier `5` is intentionally saturated: it does not claim to distinguish five tasks from six or more.
+The task count selects a whole composition; food items are not a literal counter. Successive tiers should read through meal scale, dish variety, occupied tabletop area, and Reimu's performance. Tea is a recurring anchor, tier `0` is the only non-eating composition, and a held onigiri is the preferred common action for tiers `1` through `5`. Tier `5` is intentionally saturated and does not claim to distinguish five tasks from six or more.
+
+The six maintainer-provided GPT images are composition prototypes, not source art or a locked model sheet. Their embedded task signs, shrine-room background, flowers, daruma, donation objects, detailed glossy face rendering, and exact pixels are excluded from the pet asset. Only the broad staging and abundance progression may inform original production art.
 
 These are variant specifications, not claims about the current static Codex sheet. The current v2 format has only one `running` row and exposes no task count to the custom pet package.
 
@@ -84,7 +88,8 @@ Do not produce a final sprite sheet until maintainers approve:
 - logical pixel scale and exact bounding box;
 - palette swatches and outline hierarchy;
 - low-table footprint and baseline;
-- five serving slots, invariant props, and tier `0` through tier `5` compositions;
+- recurring tea and held-food anchors, exact dish vocabulary, and tier `0` through tier `5` meal-density compositions;
+- a simplified expression progression translated from the prototypes onto the approved face grid;
 - approach for workload variants under the actual available runtime interface.
 
 See [the production visual specification](../pets/reimu/design/visual-spec.md) for measurable constraints.

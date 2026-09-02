@@ -36,6 +36,23 @@ Reference categories: low tables, tea service, rice balls, skewers, soup bowls, 
 
 No screenshots or extracted assets are committed. Before adding a link, prefer an official storefront, publisher, or developer page and record which atmosphere-level idea was studied. The Reimu scene must use an original layout, palette, prop drawings, and animation.
 
+## User-provided GPT visual prototypes
+
+### Reimu food-tier composition set
+
+| Field | Record |
+| --- | --- |
+| Title | Reimu `0 tasks` through `5 tasks` food-tier composition set (six images) |
+| Creator/tool | Maintainer-directed generation with ChatGPT Image |
+| Status | User-provided AI-generated concept art; unofficial and not a canonical Touhou reference |
+| Source | Local files supplied by the maintainer outside the repository; no public URL |
+| Access date | 2026-09-02 |
+| Traits studied | Tea-only tier `0`; transition to eating at tier `1`; increasing meal scale, dish variety, and table occupancy; recurring held onigiri and tea; maximum-tier comic tears; warm shrine-room mood |
+| Redistribution | Maintainer authorized internal design-reference use. Original files remain outside the repository and are not approved here for redistribution. |
+| Influence on committed work | Yes—composition hierarchy and tier descriptions in `docs/reimu-design.md`, `docs/workload-food-system.md`, and `pets/reimu/design/visual-spec.md` |
+
+All six prototypes are 1448×1086 opaque RGB PNGs with full room backgrounds and embedded task-count signs. They are neither sprite sources nor model sheets. Do not commit, trace, crop, downscale, palette-sample, or reuse pixels from them. The final art must independently reconstruct the approved high-level composition at the 96×104 logical-grid candidate size and satisfy the transparent 192×208 cell contract.
+
 ## Codex pet format references
 
 ### OFFICIAL — public

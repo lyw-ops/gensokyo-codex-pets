@@ -75,16 +75,28 @@ Every frame must preserve:
 
 Design six plates named `tier-0` through `tier-5`. They must reuse the same table footprint, camera, dish scale, Reimu construction, and baseline so a tier change does not look like a zoom or pose reset.
 
-- Establish five stable serving slots with a deliberate reveal order.
-- Tier `0` leaves all task-linked serving slots empty.
-- Tiers `1` through `4` occupy exactly the first one through four slots.
-- Tier `5` occupies all five slots and is also the visual cap for counts above five.
-- Prefer one countable onigiri or equally legible approved serving per occupied slot.
-- Keep invariant props, such as an approved tea cup, outside the serving-slot count and visually subordinate to it.
-- Preserve the occupied slots when adding soup, skewers, side dishes, crumbs, or expression changes; accents must not create a false sixth serving.
-- Build maximum-tier comedy through Reimu's controlled expression and compact abundance inside the cell, not through illegible clutter.
+- Tier `0`: nearly empty table, stable tea anchor, Reimu resting with chin in hand rather than eating.
+- Tier `1`: compact first meal, with Reimu holding an onigiri and tea retained.
+- Tier `2`: small set meal, adding a staple plate, soup, and one small side.
+- Tier `3`: full set meal, enlarging the staple group and adding a small number of strongly differentiated sides.
+- Tier `4`: large feast, introducing one substantial hot-dish silhouette and broader table coverage.
+- Tier `5`: maximum banquet, combining the broadest approved dish vocabulary with a controlled streaming-tears expression.
 
-The slot sequence must remain readable at intended display size, not only on a zoomed review sheet. Tier `5` must look saturated while making the five-task visual cap understandable.
+The number names the selected composition; it does not require the same number of food items. Preserve a recurring tea position and a common held-onigiri action for tiers `1` through `5` when animation semantics permit. Add supporting dishes from stable center and side zones so the family feels cumulative even when exact items change. Distinguish adjacent tiers by large silhouette groups and occupied area, not by tiny garnish or an item count that disappears at intended display size.
+
+Tier `5` must look saturated but remain inside the cell and preserve Reimu's face, bow, sleeves, state cue, and transparent perimeter. Do not include a task-count sign, room background, lantern, flower vase, daruma, donation bottle, wall notices, or other environmental storytelling elements from the composition prototypes.
+
+## GPT visual-prototype translation
+
+The six maintainer-provided GPT images are 1448×1086 opaque landscape illustrations with embedded `0 tasks` through `5 tasks` signs. They are approved for internal composition study only and remain outside the repository.
+
+Do not crop, downscale, trace, palette-sample, or reuse pixels from them. Translate only these high-level observations into original pet art:
+
+- the jump from tea-only repose at tier `0` to active eating at tier `1`;
+- a centered Reimu, low table, recurring tea cup, and held-onigiri action;
+- increasing meal scale, variety, and tabletop occupancy through tiers `1` to `5`;
+- a restrained expression arc ending in comic streaming tears at tier `5`;
+- warm, cozy shrine-room atmosphere expressed within the character-and-table silhouette rather than through a full background.
 
 ## Art review sheet required before animation
 
@@ -94,7 +106,7 @@ The review sheet should show, at minimum:
 - black-on-white silhouette;
 - flat-color palette key;
 - neutral, focused, waiting, failed, and maximum-tier faces on the same head grid;
-- a single contact sheet of tier `0` through tier `5`, with serving slots labeled outside the sprite cells;
+- a single contact sheet of tier `0` through tier `5`, with recurring anchors and occupied-area growth annotated outside the sprite cells;
 - tier `0`, tier `1`, and tier `5` at intended display scale;
 - front, right, back, and left directional anchors;
 - a reduced-motion candidate frame.

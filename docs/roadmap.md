@@ -9,6 +9,7 @@ Local scaffold and persistent GPT handoff complete. The baseline is synchronized
 - [x] Verify connectivity and synchronize the remote.
 - [x] Establish the repository structure and fan-work notice.
 - [x] Document Reimu's discrete `0…5` task-to-food progression.
+- [x] Review the maintainer-provided GPT visual prototypes and record their design implications without committing the source images.
 - [x] Research the current public, bundled, and shipped-app pet contracts.
 - [x] Record local v1/v2 dimensions, rows, metadata, installation, and state behavior.
 - [x] Record that native custom task-count logic is not currently exposed.
@@ -23,7 +24,7 @@ Local scaffold and persistent GPT handoff complete. The baseline is synchronized
 - Approve neutral front silhouette, proportions, and baseline.
 - Approve the face grid and expression vocabulary.
 - Approve a limited palette and shade hierarchy.
-- Approve the low-table footprint, five serving slots, invariant props, and all six tier compositions.
+- Approve the low-table footprint, recurring anchors, exact dish vocabulary, expression progression, and all six meal-density compositions.
 - Decide whether directional flight can preserve costume and prop handedness.
 
 Output: a reviewed model sheet/specification, not a complete animation atlas.

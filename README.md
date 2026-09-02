@@ -8,11 +8,11 @@ Phase 1 focuses only on Hakurei Reimu / 博丽灵梦. Later phases may add Maris
 
 Reimu sits at a low table and snacks while Codex works. Her proposed food display is a direct, capped visualization of active tasks:
 
-- tier `0` means no active tasks and no task-linked serving;
-- tiers `1` through `4` mean exactly one through four active tasks, with one clearly readable serving added per tier;
-- tier `5` is the maximum composition and represents five or more active tasks.
+- tier `0` means no active tasks and uses a nearly empty, tea-only table;
+- tiers `1` through `4` mean exactly one through four active tasks and use progressively richer meal compositions;
+- tier `5` is the maximum table-filling feast and represents five or more active tasks.
 
-The six visual tiers are identified by number, not by broad workload labels. Tea or another approved base prop may remain constant, but it must not make the task-linked serving count ambiguous. The highest tier may use a cute, tearful eating expression, while still keeping five primary servings legible.
+The six visual tiers are identified by number, not by broad workload labels. The tier number selects an overall composition; it is not a requirement to show the same number of onigiri or dishes. Tea provides a recurring anchor, food variety and table occupancy rise with the tier, and the highest tier becomes a cute, tearful banquet.
 
 The character art will use an original, manually controlled chibi system. Recognizability comes from Reimu's black hair, large red bow, red-and-white shrine maiden outfit, clean proportions, and economical expressions—not from a generic highly rendered anime face.
 
