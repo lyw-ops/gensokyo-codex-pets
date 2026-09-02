@@ -58,16 +58,22 @@ The first art review should approve a neutral face construction before animation
 
 Expressions should work through pixel placement and silhouette rather than gradients or detailed irises.
 
-## Workload comedy
+## Task-count food comedy
 
-The intended visual progression is:
+The visual progression uses six discrete, numbered compositions:
 
-- **calm:** one onigiri, tea, relaxed Reimu;
-- **normal:** two onigiri, tea, miso soup, one side dish;
-- **busy:** several onigiri, skewers, soup, snacks, visibly busier Reimu;
-- **overloaded:** absurdly full table, Reimu crying while eating an onigiri, cute and comedic rather than distressed.
+| `ReimuFoodTier` | Active-task meaning | Composition direction | Reimu read |
+| ---: | ---: | --- | --- |
+| `0` | exactly 0 | no task-linked serving; only approved invariant props may remain | resting, observant |
+| `1` | exactly 1 | one clearly readable serving | unhurried eating |
+| `2` | exactly 2 | two clearly readable servings | comfortably occupied |
+| `3` | exactly 3 | three clearly readable servings | focused, brisk rhythm |
+| `4` | exactly 4 | four clearly readable servings | table feels full but ordered |
+| `5` | 5 or more | five readable primary servings; compact abundance accents may reinforce the cap | cute, tearful determination rather than distress |
 
-These are variant specifications, not claims about the current static Codex sheet. The current v2 format has only one `running` row and exposes no workload count to the custom pet package.
+Each higher tier adds one task-linked serving in a stable slot. Onigiri is the preferred primary token because its silhouette survives at pet scale; tea, dishes, or condiments may be invariant or decorative only if they cannot be mistaken for additional task tokens. Tier `5` is intentionally saturated: it does not claim to distinguish five tasks from six or more.
+
+These are variant specifications, not claims about the current static Codex sheet. The current v2 format has only one `running` row and exposes no task count to the custom pet package.
 
 ## Approval gates before animation
 
@@ -78,7 +84,7 @@ Do not produce a final sprite sheet until maintainers approve:
 - logical pixel scale and exact bounding box;
 - palette swatches and outline hierarchy;
 - low-table footprint and baseline;
-- calm food arrangement;
+- five serving slots, invariant props, and tier `0` through tier `5` compositions;
 - approach for workload variants under the actual available runtime interface.
 
 See [the production visual specification](../pets/reimu/design/visual-spec.md) for measurable constraints.

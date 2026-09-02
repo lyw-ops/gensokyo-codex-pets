@@ -39,19 +39,20 @@ git log --oneline --decorate -5
 ## 3. Current project state
 
 - Project phase: **Phase 1 — Hakurei Reimu only**.
-- Current milestone: **Milestone 0 complete; awaiting visual-direction approval before Milestone 1 art work**.
+- Current milestone: **Milestone 0 specification revised; awaiting visual-direction approval before Milestone 1 art work**.
 - Repository content: documentation, design constraints, metadata example, and validation script.
 - Sprite status: **no Reimu sprite art exists yet**.
 - Runtime status: **no workload adapter exists yet**.
 - Installation status: **no installable pet package exists yet**.
-- GitHub status for this update: intended to become the first synchronized project baseline.
+- GitHub status: `main` is the synchronized project branch; verify the latest commit against `origin/main` at the start and end of every task.
 
 ## 4. Completed work
 
 - Connected the local repository to the requested GitHub remote on `main`.
 - Verified the newly created remote and fetched its state without force or destructive commands.
 - Created the project scaffold, fan-work notice, repository instructions, and roadmap.
-- Documented the Reimu desk-food concept and configurable workload levels.
+- Replaced the obsolete four-range workload concept with the discrete `ReimuFoodTier = 0 | 1 | 2 | 3 | 4 | 5` design.
+- Specified exact task-count mapping for tiers `0` through `4`, the `5+` visual cap, six additive composition plates, and count-preserving fallback semantics.
 - Documented a provisional face, proportion, palette, silhouette, and pixel-production specification.
 - Researched the current Codex pet format using public OpenAI documentation, the OpenAI-bundled `hatch-pet` contract, and read-only inspection of the installed desktop app.
 - Added a non-installable v2 manifest example and a repository validation script.
@@ -72,7 +73,10 @@ git log --oneline --decorate -5
 - Local desktop target: Codex pet v2, 1536×2288, 8×11 grid, 192×208 cells, `spriteVersionNumber: 2`.
 - Public web upload is a separate compatibility target currently documented as 1536×1872.
 - Keep visual assets, Codex compatibility, and workload observation as separate layers.
-- Use `WorkloadLevel = calm | normal | busy | overloaded`; keep thresholds configurable.
+- Use `ReimuFoodTier = 0 | 1 | 2 | 3 | 4 | 5`; do not reintroduce named workload ranges.
+- With a valid source, map tier as `min(activeTaskCount, 5)`: tiers `0` through `4` are exact and tier `5` means five or more. Preserve the uncapped observed count outside the visual tier.
+- The low table has five ordered task-serving slots. Tier `n` fills the first `n` slots; approved invariant props do not count as task servings.
+- Unavailable or invalid activity data selects tier `0` as an explicitly degraded fallback and must not be reported as an observed zero.
 - The current custom-pet manifest does not expose active-task, workflow, tool, or subagent counts. Do not claim live workload behavior until a supported and tested interface exists.
 
 ## 6. Open decisions requiring maintainer review
@@ -81,7 +85,7 @@ git log --oneline --decorate -5
 - Approve Reimu's neutral silhouette and head-to-body ratio.
 - Approve the manually controlled face grid and expression set.
 - Approve or revise the provisional palette in `pets/reimu/design/visual-spec.md`.
-- Approve the low-table footprint, calm food layout, and recurring prop vocabulary.
+- Approve the low-table footprint, serving-slot order, invariant props, and tier `0` through tier `5` composition plates.
 - Decide whether left/right movement should use low-altitude flight and whether mirroring is safe.
 - Decide how visual references will be reviewed without committing copyrighted images.
 
@@ -89,9 +93,9 @@ git log --oneline --decorate -5
 
 Do these in order; do not skip directly to a full sprite sheet.
 
-1. Maintainer reviews the Milestone 0 documentation and the open decisions above.
+1. Maintainer reviews the revised Milestone 0 six-tier specification and the open decisions above.
 2. Audit and register specific official or officially licensed Reimu references as links and study notes only.
-3. Produce a reviewable model-sheet specification for silhouette, face anchors, palette, table, and calm food composition.
+3. Produce a reviewable model sheet for silhouette, face anchors, palette, table, five serving slots, and all six tier compositions.
 4. Obtain explicit approval of that model sheet.
 5. Only then begin original standard-row sprite production and deterministic v2 validation.
 6. Investigate workload integration separately; a static sprite prototype must not pretend to react to task count.
@@ -101,8 +105,9 @@ Do these in order; do not skip directly to a full sprite sheet.
 - Blockers: none for repository synchronization.
 - Validation command: `./scripts/check-repository.sh`
 - Expected result: `repository scaffold checks passed`
+- Change-specific review: confirm all maintained documentation uses `ReimuFoodTier` and contains none of the removed four-range mapping.
 - Uncommitted or unpushed work: check `git status` and GitHub before starting; this section must be updated if synchronization fails.
-- Recommended commit for this baseline: `chore: bootstrap Gensokyo Codex Pets`
+- Latest completed change: revised the Reimu task-to-food design from four named ranges to six discrete capped tiers.
 
 ## 9. Required update procedure
 
@@ -121,6 +126,14 @@ For every repository-changing task:
 Never mark a task complete while material repository changes exist only in a local working tree.
 
 ## 10. Handoff log
+
+### 2026-09-02 — discrete Reimu food-tier correction
+
+- Removed the former four-range workload model from repository instructions and maintained documentation.
+- Established exact tiers `0` through `4` plus capped tier `5` for five or more active tasks.
+- Defined six stable food composition plates, centralized selection and degraded fallback behavior, and tier-specific future acceptance tests.
+- Kept the existing technical limitation explicit: the current static Codex pet manifest cannot receive task counts or select these variants live.
+- Next owner: review the six-tier composition system and remaining Milestone 1 visual decisions before producing art.
 
 ### 2026-09-02 — Milestone 0 and persistent handoff baseline
 

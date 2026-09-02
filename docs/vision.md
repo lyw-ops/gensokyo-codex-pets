@@ -27,14 +27,14 @@ The project should distinguish ideas from supported behavior. Workload-reactive 
 ```text
 Codex activity source
         ↓
-WorkloadSnapshot → configurable WorkloadPolicy → WorkloadLevel
-                                                   ↓
-                                      compatibility/runtime adapter
-                                                   ↓
-                               original Reimu visual asset variants
+WorkloadSnapshot → ReimuFoodPolicy → ReimuFoodTier (0…5)
+                                           ↓
+                              compatibility/runtime adapter
+                                           ↓
+                           original Reimu visual asset variants
 ```
 
-The visual asset layer must remain useful even if the workload adapter changes. The compatibility layer owns atlas and manifest rules. The dynamic layer owns task counting, filtering, thresholds, hysteresis, and fallbacks.
+The visual asset layer must remain useful even if the workload adapter changes. The compatibility layer owns atlas and manifest rules. The dynamic layer owns task counting, filtering, the five-task visual cap, transition handling, and fallbacks. It preserves the observed count for diagnostics while mapping the display to `min(activeTaskCount, 5)`; it does not group counts into named workload ranges.
 
 ## Character roadmap
 
@@ -42,4 +42,4 @@ Phase 1 is Hakurei Reimu. Possible later characters include Kirisame Marisa, Iza
 
 ## Milestone 0 success
 
-Milestone 0 succeeds when the repository is connected but not pushed, the current pet contract is documented with evidence levels, Reimu's design constraints and workload model are reviewable, and the next art step can begin without inventing technical capabilities or copying protected assets.
+Milestone 0 succeeds when the repository is synchronized with its GitHub remote, the current pet contract is documented with evidence levels, Reimu's design constraints and six-tier food model are reviewable, and the next art step can begin without inventing technical capabilities or copying protected assets.

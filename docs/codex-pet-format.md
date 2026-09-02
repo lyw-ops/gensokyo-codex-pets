@@ -127,7 +127,7 @@ After local installation, use Settings → Pets → Refresh and select the pet. 
 Therefore:
 
 - a custom sheet can reinterpret the standard rows visually;
-- it cannot natively select calm/normal/busy/overloaded food variants from active-task count;
+- it cannot natively select Reimu food tiers `0` through `5` from active-task count;
 - concurrent subagents and workflows do not receive a distinct custom animation row;
 - claiming that the current Reimu package reacts to exact task counts would be false.
 

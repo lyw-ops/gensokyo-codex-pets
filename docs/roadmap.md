@@ -2,19 +2,19 @@
 
 ## Milestone 0 — repository and specification
 
-Local scaffold and persistent GPT handoff complete. The baseline is prepared for its first GitHub synchronization; visual-direction review remains pending.
+Local scaffold and persistent GPT handoff complete. The baseline is synchronized with GitHub; visual-direction review remains pending.
 
 - [x] Inspect the workspace, Git state, branch, remotes, and Git identity.
 - [x] Configure the requested GitHub origin on `main`.
-- [x] Verify connectivity and fetch the empty remote.
+- [x] Verify connectivity and synchronize the remote.
 - [x] Establish the repository structure and fan-work notice.
-- [x] Document Reimu's concept and workload/food progression.
+- [x] Document Reimu's discrete `0…5` task-to-food progression.
 - [x] Research the current public, bundled, and shipped-app pet contracts.
 - [x] Record local v1/v2 dimensions, rows, metadata, installation, and state behavior.
 - [x] Record that native custom task-count logic is not currently exposed.
 - [ ] Maintainer review of the scaffold.
 - [x] Add a canonical `HANDOFF.md` and cross-session update procedure.
-- [x] Prepare the initial commit and persistent GitHub handoff baseline.
+- [x] Publish the initial commit and persistent GitHub handoff baseline.
 
 ## Milestone 1 — lock Reimu's visual system
 
@@ -23,7 +23,7 @@ Local scaffold and persistent GPT handoff complete. The baseline is prepared for
 - Approve neutral front silhouette, proportions, and baseline.
 - Approve the face grid and expression vocabulary.
 - Approve a limited palette and shade hierarchy.
-- Approve the low-table footprint and calm food layout.
+- Approve the low-table footprint, five serving slots, invariant props, and all six tier compositions.
 - Decide whether directional flight can preserve costume and prop handedness.
 
 Output: a reviewed model sheet/specification, not a complete animation atlas.
@@ -35,14 +35,15 @@ Output: a reviewed model sheet/specification, not a complete animation atlas.
 - Assemble and validate a 1536×2288 transparent atlas.
 - Generate an installable `pet.json` with `spriteVersionNumber: 2`.
 - Review reduced motion, actual-size readability, loop timing, and direction semantics.
-- Test local installation without claiming workload-tier switching.
+- Select the honest static tier treatment for each standard row.
+- Test local installation without claiming task-count-driven tier switching.
 
 ## Milestone 3 — workload interface proof
 
 - Recheck official Codex APIs, hooks, and app behavior.
 - Define a supported `WorkloadSnapshot` observer.
-- Implement the configurable policy and hysteresis with tests.
-- Demonstrate calm/normal/busy/overloaded switching without scraping or inventing state.
+- Implement the centralized `ReimuFoodTier` clamp and transition policy with tests.
+- Demonstrate exact `0`, `1`, `2`, `3`, `4`, and capped `5+` switching without scraping or inventing state.
 - Document failure and unavailable-source behavior.
 
 If no supported integration exists, keep workload variants as design assets and do not ship a brittle runtime workaround by default.

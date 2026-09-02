@@ -6,12 +6,13 @@ Phase 1 focuses only on Hakurei Reimu / 博丽灵梦. Later phases may add Maris
 
 ## The Reimu idea
 
-Reimu sits at a low table and snacks while Codex works. Her food should eventually respond to workload:
+Reimu sits at a low table and snacks while Codex works. Her proposed food display is a direct, capped visualization of active tasks:
 
-- calm work means an onigiri and tea;
-- normal work adds another onigiri, soup, and a side dish;
-- busy work fills the table with skewers and snacks;
-- overloaded work becomes a cute, absurd feast while Reimu tearfully keeps eating.
+- tier `0` means no active tasks and no task-linked serving;
+- tiers `1` through `4` mean exactly one through four active tasks, with one clearly readable serving added per tier;
+- tier `5` is the maximum composition and represents five or more active tasks.
+
+The six visual tiers are identified by number, not by broad workload labels. Tea or another approved base prop may remain constant, but it must not make the task-linked serving count ambiguous. The highest tier may use a cute, tearful eating expression, while still keeping five primary servings legible.
 
 The character art will use an original, manually controlled chibi system. Recognizability comes from Reimu's black hair, large red bow, red-and-white shrine maiden outfit, clean proportions, and economical expressions—not from a generic highly rendered anime face.
 
@@ -27,7 +28,7 @@ The project keeps three concerns separate:
 
 1. **Visual asset layer** — original character art, palettes, poses, and animation frames.
 2. **Codex compatibility layer** — atlas assembly, manifest generation, validation, and installation.
-3. **Dynamic workload layer** — a future adapter that converts supported Codex activity data into configurable `WorkloadLevel` values.
+3. **Dynamic workload layer** — a future adapter that converts a supported active-task count into `ReimuFoodTier = 0 | 1 | 2 | 3 | 4 | 5`.
 
 A fixed sprite sheet must not be presented as live workload integration. Current findings show that a custom pet receives app-selected animation states, but its manifest has no task-count or custom state-logic hook.
 

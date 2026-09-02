@@ -71,9 +71,20 @@ Every frame must preserve:
 - stable table scale and lower-body anchor in non-locomotion rows;
 - readable onigiri triangle/rounded-triangle shapes without tiny garnish noise.
 
-## Workload composition plates
+## Task-count composition plates
 
-Design calm first. Later normal, busy, and overloaded plates must reuse the same table footprint and dish scale so switching does not look like camera zoom. Add food outward from stable anchor positions. Overloaded comedy should come from controlled abundance and expression, not clutter outside the cell.
+Design six plates named `tier-0` through `tier-5`. They must reuse the same table footprint, camera, dish scale, Reimu construction, and baseline so a tier change does not look like a zoom or pose reset.
+
+- Establish five stable serving slots with a deliberate reveal order.
+- Tier `0` leaves all task-linked serving slots empty.
+- Tiers `1` through `4` occupy exactly the first one through four slots.
+- Tier `5` occupies all five slots and is also the visual cap for counts above five.
+- Prefer one countable onigiri or equally legible approved serving per occupied slot.
+- Keep invariant props, such as an approved tea cup, outside the serving-slot count and visually subordinate to it.
+- Preserve the occupied slots when adding soup, skewers, side dishes, crumbs, or expression changes; accents must not create a false sixth serving.
+- Build maximum-tier comedy through Reimu's controlled expression and compact abundance inside the cell, not through illegible clutter.
+
+The slot sequence must remain readable at intended display size, not only on a zoomed review sheet. Tier `5` must look saturated while making the five-task visual cap understandable.
 
 ## Art review sheet required before animation
 
@@ -82,8 +93,9 @@ The review sheet should show, at minimum:
 - neutral front at 1× and intended display scale;
 - black-on-white silhouette;
 - flat-color palette key;
-- neutral, focused, waiting, failed, and overloaded faces on the same head grid;
-- calm table composition;
+- neutral, focused, waiting, failed, and maximum-tier faces on the same head grid;
+- a single contact sheet of tier `0` through tier `5`, with serving slots labeled outside the sprite cells;
+- tier `0`, tier `1`, and tier `5` at intended display scale;
 - front, right, back, and left directional anchors;
 - a reduced-motion candidate frame.
 

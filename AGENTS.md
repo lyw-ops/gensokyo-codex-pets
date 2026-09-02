@@ -21,9 +21,9 @@ Keep these layers independent:
 
 1. visual assets under `pets/<pet>/design` and `pets/<pet>/sprites`;
 2. Codex format/build/install compatibility in deterministic scripts or tools;
-3. workload observation and `WorkloadLevel` classification in a runtime adapter.
+3. workload observation and `ReimuFoodTier` selection in a runtime adapter.
 
-Do not hardcode task-count thresholds throughout animation code. Use a configurable `calm | normal | busy | overloaded` abstraction.
+For Reimu, use the discrete visual type `ReimuFoodTier = 0 | 1 | 2 | 3 | 4 | 5`. Tiers 0–4 represent the same number of active tasks; tier 5 is the capped visual for five or more. Keep that mapping in one policy boundary and do not reintroduce named workload bands or distributed task-count thresholds.
 
 Do not claim workload-reactive behavior unless it is driven by a documented, tested Codex interface. The current pet manifest is static and exposes no custom task-count hook.
 
