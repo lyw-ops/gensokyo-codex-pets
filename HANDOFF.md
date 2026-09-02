@@ -24,7 +24,8 @@ If a push cannot be completed, do not claim the handoff is synchronized. Record 
 4. `docs/roadmap.md` — milestone sequence.
 5. `docs/codex-pet-format.md` — current compatibility evidence.
 6. `docs/reimu-design.md` and `pets/reimu/design/visual-spec.md` — Phase 1 design constraints.
-7. `docs/workload-food-system.md` — future workload abstraction and current limitations.
+7. `docs/reimu-action-system.md` and `pets/reimu/metadata/actions.json` — behavior system, FSM, and action catalog.
+8. `docs/workload-food-system.md` — future workload abstraction and current limitations.
 
 Recommended startup checks:
 
@@ -39,8 +40,8 @@ git log --oneline --decorate -5
 ## 3. Current project state
 
 - Project phase: **Phase 1 — Hakurei Reimu only**.
-- Current milestone: **Milestone 0 specification revised from visual prototypes; awaiting distilled visual-direction approval before Milestone 1 art work**.
-- Repository content: documentation, design constraints, metadata example, and validation script.
+- Current milestone: **Milestone 0 specification extended with the full Reimu behavior/action system; awaiting maintainer review of the action system and the earlier visual-direction decisions before Milestone 1 art work**.
+- Repository content: documentation, design constraints, behavior/action specification (`docs/reimu-action-system.md`, `pets/reimu/metadata/actions.json`), metadata example, and validation script.
 - Visual-reference status: six maintainer-provided GPT composition prototypes were reviewed locally and remain outside the repository.
 - Sprite status: **no Reimu sprite art exists yet**.
 - Runtime status: **no workload adapter exists yet**.
@@ -59,6 +60,11 @@ git log --oneline --decorate -5
 - Researched the current Codex pet format using public OpenAI documentation, the OpenAI-bundled `hatch-pet` contract, and read-only inspection of the installed desktop app.
 - Added a non-installable v2 manifest example and a repository validation script.
 - Added this persistent GPT handoff and GitHub synchronization protocol.
+- Surveyed nine open desktop-pet/Shimeji projects for behavior architecture (priority ladders, state classes, transition locks, autonomous schedulers, sleep chains, click escalation, drag handling) and recorded the adopted patterns.
+- Audited Reimu's first-party characterization against original official texts (game omake/manuals, PMiSS, ZUN print works), separating canon, inferred, and fanon traits.
+- Authored the Reimu action system: a two-axis `WorkloadState × CharacterBehavior` model, a priority-banded FSM with base/transient/transition/held state classes, an autonomous scheduler with cooldowns, a sleep chain, interaction reactions, drag-as-flight, a design-only incident chain, a reusable eating vocabulary, and the locked tier 0–5 emotion progression.
+- Registered all 35 actions in `pets/reimu/metadata/actions.json`, explicitly marked as a project-internal behavior specification rather than a Codex manifest.
+- Extended `docs/reimu-design.md` (standard Codex actions vs. extended behavior vocabulary) and `pets/reimu/design/visual-spec.md` (per-action-category silhouette, expression, prop, and consistency constraints).
 
 ## 5. Decisions currently in force
 
@@ -84,8 +90,21 @@ git log --oneline --decorate -5
 - Unavailable or invalid activity data selects tier `0` as an explicitly degraded fallback and must not be reported as an observed zero.
 - The current custom-pet manifest does not expose active-task, workflow, tool, or subagent counts. Do not claim live workload behavior until a supported and tested interface exists.
 
+### Behavior and action system
+
+- Reimu's behavior is `WorkloadState (ReimuFoodTier) × CharacterBehavior (FSM node)`; task count never selects an individual animation directly.
+- The FSM uses priority bands `FAILED > INCIDENT > REACTION > DRAG > REVIEW > WORKING > AUTONOMOUS > SLEEP > IDLE`; transient actions return to the *current base state* (`returnTo: "base"`), never unconditionally to idle; an unknown node falls back to `idle_relaxed` with logging.
+- Core temperament contrast: lazy/unhurried at rest, instantly competent when something happens. Pacing principle: **Reimu should feel alive, not busy** — autonomous one-shots have per-action cooldowns and a global 20–45 s floor, and "do nothing" is the most likely scheduler outcome.
+- Sleep is a chain (`idle_yawn → doze_nod → sleep_table`, exit only via `wake_up`), entered only at tier 0 after ~5 minutes of inactivity; no "Zzz" text or floating symbols.
+- Locomotion is low-altitude flight; drag is `drag_float` (composed floating, never limp dangling) plus `drag_land`.
+- The incident chain (`incident_notice → incident_ready → incident_fly`) is **design-only**: no supported urgent-event trigger exists in Codex today and the registry marks it accordingly.
+- The tier 0–5 emotion progression is locked and monotonic: 0 unhurried boredom, 1 crying-while-eating (absurd relief, food restrained), 2 residual tears but visibly easier, 3 openly content, 4 clearly happy (one small sweat cue at most, never fatigue), 5 laughing-while-crying banquet ("how is there this much food", not work collapse).
+- Eating uses a shared body construction plus a tier-specific table-composition layer and small expression differences; sprite production must not multiply by six tiers.
+- `pets/reimu/metadata/actions.json` is a project-internal behavior specification for future tooling; it is not a Codex manifest and must not be presented as one. Codex-mappable actions vs. extended-runtime actions are separated in `docs/reimu-action-system.md` section 9.
+
 ## 6. Open decisions requiring maintainer review
 
+- Review and approve the Reimu action system (`docs/reimu-action-system.md`): the FSM priority bands, the 35-action catalog, the sleep chain, interaction reactions, drag-as-flight, the design-only incident chain, and the autonomous pacing values (cooldowns, sleep-entry delay).
 - Approve or revise the 96×104 logical grid with 2× nearest-neighbor export.
 - Approve Reimu's neutral silhouette and head-to-body ratio.
 - Approve the manually controlled face grid and expression set.
@@ -99,7 +118,7 @@ git log --oneline --decorate -5
 
 Do these in order; do not skip directly to a full sprite sheet.
 
-1. Maintainer reviews the prototype-informed Milestone 0 six-tier specification and the open decisions above.
+1. Maintainer reviews the action system and the prototype-informed Milestone 0 six-tier specification, plus the open decisions above.
 2. Audit and register specific official or officially licensed Reimu references as links and study notes only.
 3. Produce an original reviewable model sheet for silhouette, face anchors, palette, table, recurring prop anchors, and all six meal-density compositions; do not transform the GPT prototype pixels.
 4. Obtain explicit approval of that model sheet.
@@ -111,9 +130,9 @@ Do these in order; do not skip directly to a full sprite sheet.
 - Blockers: none for repository synchronization.
 - Validation command: `./scripts/check-repository.sh`
 - Expected result: `repository scaffold checks passed`
-- Change-specific review: confirm all maintained documentation uses `ReimuFoodTier`, contains none of the removed four-range mapping or literal one-food-item-per-task rule, and keeps the six GPT prototype files outside the repository.
+- Change-specific review: confirm all maintained documentation uses `ReimuFoodTier`, contains none of the removed four-range mapping or literal one-food-item-per-task rule, keeps the six GPT prototype files outside the repository, keeps `actions.json` labeled as a project-internal specification, and keeps the incident chain marked design-only.
 - Uncommitted or unpushed work: check `git status` and GitHub before starting; this section must be updated if synchronization fails.
-- Latest completed change: reconciled the six discrete tiers with the maintainer-provided GPT composition prototypes and recorded their provenance and usage boundary.
+- Latest completed change: authored the Reimu action system (behavior research, canon audit, FSM, 35-action catalog, machine-readable registry) and integrated it into the design and visual specifications.
 
 ## 9. Required update procedure
 
@@ -132,6 +151,14 @@ For every repository-changing task:
 Never mark a task complete while material repository changes exist only in a local working tree.
 
 ## 10. Handoff log
+
+### 2026-09-02 — Reimu action system and behavior FSM
+
+- Surveyed Ice-teapop/desktop-pet, clawd-buddy, clawd-on-desk, kokoronoka/desktopPet, He2y/desktop_pet, Shimeji-ee/Shimeji-Desktop, Adrianotiger/desktopPet, and vscode-pets for behavior architecture only; adopted patterns are documented with sources in `docs/reimu-action-system.md` section 2.
+- Audited Reimu's first-party characterization (game omake/manual texts, PMiSS, IaMP profile, ZUN print works) and recorded a canon/inferred/fanon table; poverty-mania and other flanderizations are explicitly excluded.
+- Added `docs/reimu-action-system.md`: two-axis model, priority-banded FSM, base-state return rule, transition locks, autonomous scheduler pacing, sleep chain, interaction set, drag-as-flight, design-only incident chain, locked tier emotion progression, Codex-standard vs. extended action split, and sprite-economy strategy.
+- Added `pets/reimu/metadata/actions.json` (35 actions, project-internal specification) and extended `docs/reimu-design.md`, `pets/reimu/design/visual-spec.md`, `docs/references.md`, and `scripts/check-repository.sh` accordingly.
+- Next owner: obtain maintainer review of the action system and pacing values, then proceed to the Milestone 1 model sheet; do not begin sprite production or claim extended-runtime support.
 
 ### 2026-09-02 — GPT composition-prototype review
 

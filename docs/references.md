@@ -12,6 +12,22 @@ Every future entry should record: title, publisher/creator, official or licensed
 - [Touhou Project fan-creator guidelines — English](https://touhou-project.news/guidelines_en/): official English guidance; the Japanese page has a newer listed update date.
 - [Touhou Project 25th anniversary character page](https://touhou-x.jp/character/): high-level official/authorized character index. Use for identity study only; do not download or reproduce its images.
 
+### Reimu first-party characterization study (2026-09-02)
+
+| Field | Record |
+| --- | --- |
+| Title | Reimu canon-characterization audit for the action system |
+| Locator used | [en.touhouwiki.net/wiki/Reimu_Hakurei](https://en.touhouwiki.net/wiki/Reimu_Hakurei) and [PMiSS Reimu article](https://en.touhouwiki.net/wiki/Perfect_Memento_in_Strict_Sense/Reimu_Hakurei), which reproduce the original Japanese official texts verbatim; thwiki.cc was unreachable (WAF) and not consulted |
+| Underlying official works cited | PC-98 omake texts (靈異伝.TXT, 封魔録.txt, 夢時空.txt, 幻想郷.txt, 怪綺談.txt); EoSD manual and おまけ.txt; PCB manual and キャラ設定.txt; IaMP 上海アリス通信.txt; IN manual and キャラ設定.txt; PoFV texts; MoF/SA omake; SWR and 儚月抄 official sites; Perfect Memento in Strict Sense; Symposium of Post-mysticism Part 6; Strange Creators of Outer World Vol. 1; Wild and Horned Hermit; Forbidden Scrollery; Curiosities of Lotus Asia |
+| Traits studied | Laid-back temperament, tea ritual, dislike of training, spacing out at the shrine, direct emotions, equal treatment of all, intuition, incident responsiveness, flight, shrine-maiden duty, yin-yang orb / ofuda / gohei armament |
+| Canon/fanon separation | Recorded in `docs/reimu-action-system.md` section 3; poverty-mania, armpit jokes, and whimsical violence are marked fanon/flanderization and excluded |
+| Redistribution | Text study only; no images downloaded or committed |
+| Influence on committed work | Yes — the character-basis table and behavior selection in `docs/reimu-action-system.md` |
+
+### Desktop-pet behavior-architecture study (2026-09-02)
+
+Architecture-only survey; no character, art, or code reused. Projects: [Ice-teapop/desktop-pet](https://github.com/Ice-teapop/desktop-pet), [bestxiangest/clawd-buddy](https://github.com/bestxiangest/clawd-buddy), [rullerzhou-afk/clawd-on-desk](https://github.com/rullerzhou-afk/clawd-on-desk), [kokoronoka/desktopPet](https://github.com/kokoronoka/desktopPet), [He2y/desktop_pet](https://github.com/He2y/desktop_pet), [gil/shimeji-ee](https://github.com/gil/shimeji-ee), [DalekCraft2/Shimeji-Desktop](https://github.com/DalekCraft2/Shimeji-Desktop), [Adrianotiger/desktopPet](https://github.com/Adrianotiger/desktopPet), [tonybaloney/vscode-pets](https://github.com/tonybaloney/vscode-pets). Lessons adopted (priority ladder, state classes with explicit returns, transition locks, autonomous scheduling with cooldowns, sleep chains, click escalation, drag as a forced state, cursor-following as an overlay) are recorded in `docs/reimu-action-system.md` section 2.
+
 ### Reimu study checklist
 
 Use official game portraits or authorized character pages only to verify broad invariants: black hair, red bow, red-and-white shrine maiden clothing, detached sleeves, silhouette, and recurring accessories. Record the exact title and page before use. Do not extract game files.

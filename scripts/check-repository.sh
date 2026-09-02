@@ -9,6 +9,7 @@ required_files=(
   docs/vision.md
   docs/codex-pet-format.md
   docs/reimu-design.md
+  docs/reimu-action-system.md
   docs/workload-food-system.md
   docs/references.md
   docs/roadmap.md
@@ -17,6 +18,7 @@ required_files=(
   pets/reimu/sprites/README.md
   pets/reimu/metadata/README.md
   pets/reimu/metadata/pet.v2.example.json
+  pets/reimu/metadata/actions.json
 )
 
 for path in "${required_files[@]}"; do
@@ -27,6 +29,12 @@ for path in "${required_files[@]}"; do
 done
 
 python3 -m json.tool pets/reimu/metadata/pet.v2.example.json >/dev/null
+python3 -m json.tool pets/reimu/metadata/actions.json >/dev/null
+
+if ! grep -q "project-internal behavior specification" pets/reimu/metadata/actions.json; then
+  echo "actions.json must declare itself a project-internal behavior specification" >&2
+  exit 1
+fi
 
 if find pets/reimu/sprites -type f ! -name README.md -print -quit | grep -q .; then
   echo "Milestone 0 must not contain unreviewed Reimu sprite assets" >&2

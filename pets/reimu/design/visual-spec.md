@@ -86,6 +86,48 @@ The number names the selected composition; it does not require the same number o
 
 Tier `5` must look saturated but remain inside the cell and preserve Reimu's face, bow, sleeves, state cue, and transparent perimeter. Do not include a task-count sign, room background, lantern, flower vase, daruma, donation bottle, wall notices, or other environmental storytelling elements from the composition prototypes.
 
+## Action-category visual constraints
+
+These constraints apply to the behavior vocabulary in [docs/reimu-action-system.md](../../../docs/reimu-action-system.md). Every category must keep the shared silhouette invariants above; the rules below add per-category limits so the extended vocabulary cannot drift.
+
+### Idle and autonomous one-shots (`idle_*`)
+
+- Silhouette: the seated base silhouette and table footprint never move; only arms, head pitch, and gaze change. `idle_sweep` is the sole action that may leave the table, and it must return to the identical seated anchor.
+- Expression: bored-but-comfortable at most. No sad brows, no gloom shading; tier 0 idleness reads as "a slow day", never depression.
+- Props: one prop per action (tea cup, broom, ofuda, or yin-yang orb). The yin-yang orb may float a few pixels and be tapped; no spell effects, particles, or glow.
+- Consistency: all one-shots start and end on a frame that matches `idle_relaxed` frame 0 so returns never pop.
+
+### Sleep chain (`idle_yawn`, `doze_nod`, `sleep_table`, `wake_up`)
+
+- Silhouette: sleeping is face-down or cheek-down on the low table with the red bow fully readable from above; the tea cup stays beside her.
+- Expression: closed eyes and slow breathing only. No "Zzz" text, no floating symbols, no drool gag.
+- Consistency: each stage must look correct as an interruption point, because waking can begin at any stage; `wake_up` ends on the `idle_relaxed` anchor frame.
+
+### Interaction reactions (`look_cursor`, `react_*`)
+
+- Silhouette: eyes move first, then head and bow within a small arc; shoulders may shift, the seated base and table stay fixed. The body never rotates to chase the cursor.
+- Expression: dry and economical — one blink for notice, a small frown plus slight lean-back for poke, open irritation with a raised ofuda or gohei for the annoyed warning. No sparkle eyes, blush bursts, or exaggerated anime shock.
+- Props: ofuda or gohei appear only in `react_annoyed` and must come from and return to a consistent off-hand position.
+
+### Drag and landing (`drag_float`, `drag_land`)
+
+- Silhouette: low-altitude float — feet clear the baseline, sleeves and ribbon trail downward, body stays upright and composed. Never a limp dangling pose.
+- Expression: calm, mildly puzzled at most.
+- Consistency: `drag_land` settles onto the exact table baseline band (y=188–194) with no bounce.
+
+### Incident chain (`incident_*`)
+
+- Silhouette: posture sharpens — spine straightens, chin drops level, ofuda drawn to a ready position; flight is forward-leaning and low.
+- Expression: the snap from idle softness to sharp focus is the entire point; keep the same face grid and change only eye shape and brow.
+- Props: ofuda and optionally gohei. No danmaku patterns, no large effects.
+
+### Eating vocabulary (`eat_*`, `drink_tea_meal`, `pause_chew`, `look_at_food`, `happy_eat`)
+
+- Silhouette: one shared arm cycle covers held-item bites; a two-hand lift covers soup and tea. The held onigiri stays in the same hand at every tier.
+- Expression: tier-locked — streaming tears at 1, drying eyes at 2, small smile at 3, energetic delight with at most one small sweat cue at 4, laughing tears at 5. Tears must stay attached to the face silhouette.
+- Props: dish variety comes from the tier composition layer; individual eating actions add no new dishes of their own.
+- Consistency: eating one-shots may not reposition table dishes; only a tier change (at a loop boundary) may alter the composition.
+
 ## GPT visual-prototype translation
 
 The six maintainer-provided GPT images are 1448×1086 opaque landscape illustrations with embedded `0 tasks` through `5 tasks` signs. They are approved for internal composition study only and remain outside the repository.

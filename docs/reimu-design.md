@@ -2,6 +2,8 @@
 
 Status: **Milestone 0 design brief; art not yet approved or generated**
 
+Reimu's full behavior system — the finite state machine, autonomous idle vocabulary, sleep chain, interaction reactions, and incident chain — is specified in [reimu-action-system.md](reimu-action-system.md). This brief keeps the character read, prop vocabulary, and the food-tier comedy; the action system defines how those elements move.
+
 ## Character read
 
 Reimu must remain unmistakable at desktop-pet scale through a small set of controlled signals:
@@ -11,7 +13,8 @@ Reimu must remain unmistakable at desktop-pet scale through a small set of contr
 - a red-and-white shrine maiden outfit with detached-sleeve readability;
 - compact chibi proportions and low visual noise;
 - economical expressions built from a shared face grid;
-- a dry, cozy comedic tone rather than melodrama.
+- a dry, cozy comedic tone rather than melodrama;
+- the core temperament contrast: unhurried and low-motivation when nothing is happening, instantly sharp and fast when something real occurs. She must never read as a permanently busy AI mascot.
 
 Do not use a glossy, heavily rendered, generic AI-anime face. The face should be manually authored and reused as a controlled construction across poses.
 
@@ -31,7 +34,9 @@ The core scene is Reimu at a small low table. Food and work coexist in one compa
 
 The scene should evoke cozy everyday Gensokyo without reproducing Touhou Mystia's Izakaya layouts, sprites, UI, dishes, or decorative assets.
 
-## Standard-state performances
+## Standard-state performances (Codex standard actions)
+
+These are the performances that can ship inside the current static v2 atlas. Each row is the Codex-mappable projection of a richer behavior defined in [reimu-action-system.md](reimu-action-system.md).
 
 | Codex row | Reimu interpretation |
 | --- | --- |
@@ -47,6 +52,18 @@ The scene should evoke cozy everyday Gensokyo without reproducing Touhou Mystia'
 | look rows | Eyes lead, then head/bow subtly follow; table and lower-body anchor remain stable. |
 
 Avoid detached motion lines, floating punctuation, glow, floor shadows, loose tears, or decorative particles. Any comic effect must remain attached to the sprite and legible within one 192×208 cell.
+
+## Extended Reimu behavior vocabulary
+
+Beyond the fixed Codex rows, Reimu has a full character-behavior vocabulary specified in [reimu-action-system.md](reimu-action-system.md) and registered in [`pets/reimu/metadata/actions.json`](../pets/reimu/metadata/actions.json):
+
+- **autonomous idle behaviors** — tea (`idle_tea`), cloud watching (`idle_cloudwatch`), table slouch (`idle_table_slouch`), half-hearted sweeping (`idle_sweep`), ofuda glance (`idle_ofuda_check`), yin-yang orb fidget (`idle_yinyang`);
+- **a sleep chain** — `idle_yawn → doze_nod → sleep_table`, exited only through `wake_up`;
+- **interaction reactions** — cursor gaze, click notice, poke frown, repeated-poke ofuda warning, drag-as-flight and gentle landing;
+- **an incident chain** — the lazy-to-competent snap (`incident_notice → incident_ready → incident_fly`), design-only until a supported urgent-event source exists;
+- **an eating vocabulary** — shared bite/sip/chew beats that reuse one body construction across all food tiers.
+
+The extended vocabulary is a design-layer contract for a future runtime adapter or extended shell. The current Codex custom pet API cannot invoke these actions; the static atlas compresses the idle vocabulary into one composed idle row and ships exactly one appearance per standard row. Pacing follows one principle: **Reimu should feel alive, not busy** — most of the time she is simply sitting there, unhurried.
 
 ## Face system
 
