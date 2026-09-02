@@ -18,7 +18,7 @@ The character art will use an original, manually controlled chibi system. Recogn
 
 ## Current status
 
-**Early prototype / research stage.** Milestone 0 contains format research and production specifications only. It deliberately contains no final sprites, no extracted game assets, and no simulated workload integration.
+**Static visual prototype stage.** The maintainer-approved **Eating Set v1** concept sheet is committed under `docs/reference/reimu/eating_set_v1/`, its six derived runtime sprites live under `assets/reimu/eating/`, and a dependency-free static preview app under `app/` switches states from a debug task count (see `app/README.md`). There is still no animation, no installable Codex pet package, and no real workload integration; the preview's task count is a manual debug input.
 
 The current Codex desktop app supports a local v2 pet atlas with 8 columns, 11 rows, 192×208 pixel cells, and a 1536×2288 final image. The public web-upload documentation currently describes a separate 1536×1872 sheet. See [the format research](docs/codex-pet-format.md) before making assets.
 
@@ -35,10 +35,13 @@ A fixed sprite sheet must not be presented as live workload integration. Current
 ## Repository map
 
 ```text
+app/                  Static state-switching preview app (debug task provider)
+assets/reimu/eating/  Eating Set v1 runtime sprites (one state directory each)
 docs/                 Project vision, format research, design, references, and roadmap
-pets/reimu/           Reimu-specific design, future sprites, and metadata examples
+docs/reference/       Approved concept/reference art (never loaded at runtime)
+pets/reimu/           Reimu-specific design, future Codex atlas sprites, and metadata examples
 scripts/              Deterministic project checks and future build scripts
-tools/                Future compatibility and workload adapter tooling
+tools/                Asset derivation and future compatibility/workload tooling
 ```
 
 Start with [the project vision](docs/vision.md), [Reimu's design brief](docs/reimu-design.md), and [the workload/food model](docs/workload-food-system.md).

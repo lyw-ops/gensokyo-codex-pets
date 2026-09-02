@@ -40,11 +40,11 @@ git log --oneline --decorate -5
 ## 3. Current project state
 
 - Project phase: **Phase 1 — Hakurei Reimu only**.
-- Current milestone: **Milestone 0 specification extended with the full Reimu behavior/action system; awaiting maintainer review of the action system and the earlier visual-direction decisions before Milestone 1 art work**.
-- Repository content: documentation, design constraints, behavior/action specification (`docs/reimu-action-system.md`, `pets/reimu/metadata/actions.json`), metadata example, and validation script.
-- Visual-reference status: six maintainer-provided GPT composition prototypes were reviewed locally and remain outside the repository.
-- Sprite status: **no Reimu sprite art exists yet**.
-- Runtime status: **no workload adapter exists yet**.
+- Current milestone: **Eating Set v1 static prototype — approved concept sheet committed, six runtime sprites derived, and a static state-switching preview app with a debug task provider implemented. Next: maintainer review of the static prototype before any animation or real workload integration.**
+- Repository content: documentation, design constraints, behavior/action specification, metadata example, validation script, approved Eating Set v1 reference art (`docs/reference/reimu/eating_set_v1/`), six derived runtime sprites (`assets/reimu/eating/`), the deterministic derivation script (`tools/split_eating_sheet.py`), and the static preview app (`app/`).
+- Visual-reference status: the maintainer approved the 2026-09-02 six-panel Eating Set v1 sheet and instructed committing it as reference art; the older GPT composition prototypes and all downloaded third-party fan art remain outside the repository.
+- Sprite status: **six static 596×596 RGBA eating-state sprites exist** (`idle`, `task_1`–`task_5`), mechanically derived from the approved sheet; no animation frames and no Codex atlas art exist yet.
+- Runtime status: **no workload adapter exists yet**; the preview app uses a manual debug task count only.
 - Installation status: **no installable pet package exists yet**.
 - GitHub status: `main` is the synchronized project branch; verify the latest commit against `origin/main` at the start and end of every task.
 
@@ -86,7 +86,11 @@ git log --oneline --decorate -5
 - A tier selects an overall meal composition; food-item counts do not need to equal active-task counts.
 - The six-plate family progresses from tea-only repose at tier `0`, through increasingly rich meals at tiers `1` through `4`, to a table-filling comic banquet at tier `5`.
 - Preserve recurring tea and held-onigiri anchors where state semantics permit, while increasing dish variety and occupied tabletop area at each tier.
-- The GPT prototypes are internal composition evidence only. Do not commit, trace, crop, downscale, palette-sample, or reuse their pixels; do not carry their task signs or room background into the pet asset.
+- The six older GPT prototypes are internal composition evidence only. Do not commit, trace, crop, downscale, palette-sample, or reuse their pixels; do not carry their task signs or room background into the pet asset.
+- Exception decided by the maintainer on 2026-09-02: the approved **Eating Set v1** sheet (their own generated concept art) is committed under `docs/reference/reimu/eating_set_v1/` and is the source of the runtime sprites. Reference art is never loaded at runtime; runtime code loads only `assets/reimu/eating/`.
+- Runtime sprites are derived mechanically (`tools/split_eating_sheet.py`): alpha-connectivity panel segmentation, nearest-panel assignment of floating effects, bottom-center anchoring on a 596×596 transparent canvas; no repainting, no non-uniform scaling. Regenerate from an updated approved sheet instead of hand-editing `base.png` files.
+- The task-count → eating-state mapping lives only in `app/task-state-mapping.js` (`0 → idle`, `1..4 → task_n`, `>= 5 → task_5`, negative/invalid → `idle`); the character model is `Character → StateSet → State → frames[]` (`app/characters.js`) so additional characters and future multi-frame animation extend data, not code.
+- The current milestone is deliberately static: no GIF playback, sprite-sheet loops, or procedural motion in the preview app.
 - Unavailable or invalid activity data selects tier `0` as an explicitly degraded fallback and must not be reported as an observed zero.
 - The current custom-pet manifest does not expose active-task, workflow, tool, or subagent counts. Do not claim live workload behavior until a supported and tested interface exists.
 
@@ -116,14 +120,12 @@ git log --oneline --decorate -5
 
 ## 7. Next actions
 
-Do these in order; do not skip directly to a full sprite sheet.
+Do these in order; do not skip ahead.
 
-1. Maintainer reviews the action system and the prototype-informed Milestone 0 six-tier specification, plus the open decisions above.
-2. Audit and register specific official or officially licensed Reimu references as links and study notes only.
-3. Produce an original reviewable model sheet for silhouette, face anchors, palette, table, recurring prop anchors, and all six meal-density compositions; do not transform the GPT prototype pixels.
-4. Obtain explicit approval of that model sheet.
-5. Only then begin original standard-row sprite production and deterministic v2 validation.
-6. Investigate workload integration separately; a static sprite prototype must not pretend to react to task count.
+1. Maintainer reviews the six static runtime states in the preview app (`app/README.md`), especially readability at 160 px pet size and the state-switch ground anchor.
+2. Maintainer reviews the outstanding action-system and visual-system decisions above where they still apply to future animation work.
+3. Only after that review: plan animation frames per state (the `frames[]` model is already in place) and the Codex atlas pipeline.
+4. Investigate workload integration separately; the static preview's debug task count must not be presented as live Codex integration.
 
 ## 8. Current handoff status
 
@@ -132,7 +134,7 @@ Do these in order; do not skip directly to a full sprite sheet.
 - Expected result: `repository scaffold checks passed`
 - Change-specific review: confirm all maintained documentation uses `ReimuFoodTier`, contains none of the removed four-range mapping or literal one-food-item-per-task rule, keeps the six GPT prototype files outside the repository, keeps `actions.json` labeled as a project-internal specification, and keeps the incident chain marked design-only.
 - Uncommitted or unpushed work: check `git status` and GitHub before starting; this section must be updated if synchronization fails.
-- Latest completed change: authored the Reimu action system (behavior research, canon audit, FSM, 35-action catalog, machine-readable registry) and integrated it into the design and visual specifications.
+- Latest completed change: committed the approved Eating Set v1 reference sheet, derived the six static runtime sprites, and implemented the static state-switching preview app with debug task provider.
 
 ## 9. Required update procedure
 
@@ -151,6 +153,15 @@ For every repository-changing task:
 Never mark a task complete while material repository changes exist only in a local working tree.
 
 ## 10. Handoff log
+
+### 2026-09-02 — Eating Set v1 static prototype
+
+- Inventoried the maintainer's local design archive (`~/Desktop/灵梦`); selected the approved 1254×1254 six-panel transparent sheet (low table + tatami + chin-in-hands idle) as Eating Set v1 and its companion task_1 single render as reference; rejected two superseded concept sheets and five downloaded third-party fan-art files (the latter are barred from the repository by `AGENTS.md`).
+- Committed the approved sheet and companion render under `docs/reference/reimu/eating_set_v1/` with provenance notes, per explicit maintainer instruction.
+- Wrote `tools/split_eating_sheet.py` (deterministic alpha-connectivity segmentation; panels 5/6 touch at the tatami corners and are separated by an erosion-seeded nearest-seed split; hearts/sweat/steam/sparkles assigned to nearest panel; 596×596 bottom-center-anchored transparent canvases) and generated `assets/reimu/eating/{idle,task_1..task_5}/base.png`.
+- Built the static preview app (`app/`): `Character → StateSet → State → frames[]` registry, the single task-count→state policy boundary in `app/task-state-mapping.js`, and a debug task provider (buttons −1/0–6/10, numeric input, keyboard, `?tasks=N`), plus display-size and background QA toggles. No animation, per milestone scope.
+- Extended `scripts/check-repository.sh` to require the new files and validate all six sprites as 596×596 RGBA PNGs.
+- Next owner: get maintainer review of the six runtime states at pet size, then plan animation frames and the real workload adapter; do not claim live Codex integration.
 
 ### 2026-09-02 — Reimu action system and behavior FSM
 

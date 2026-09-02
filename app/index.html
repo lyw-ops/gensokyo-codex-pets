@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reimu eating set preview</title>
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0;
+    font: 14px/1.5 system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background: #f4f1ea;
+    color: #333;
+  }
+  h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  #stage {
+    --sprite-size: 400px;
+    width: var(--sprite-size);
+    height: var(--sprite-size);
+    display: grid;
+    place-items: end center;
+    border-radius: 8px;
+    outline: 1px dashed #b9b2a3;
+  }
+  #stage[data-bg="checker"] {
+    background:
+      repeating-conic-gradient(#d7d2c6 0% 25%, #efece3 0% 50%) 0 0 / 24px 24px;
+  }
+  #stage[data-bg="desktop"] { background: linear-gradient(#7fa8d9, #cfe0f2); }
+  #stage[data-bg="dark"] { background: #2b2b31; }
+  #sprite {
+    width: 100%;
+    height: 100%;
+    image-rendering: auto;
+    display: block;
+  }
+  #state-label { font-variant-numeric: tabular-nums; color: #555; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  button {
+    font: inherit;
+    padding: 4px 10px;
+    border: 1px solid #b9b2a3;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+  button.active { background: #c8412f; color: #fff; border-color: #c8412f; }
+  input[type="number"] { width: 70px; font: inherit; padding: 4px; }
+  .hint { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>Reimu — Eating Set v1 (static preview)</h1>
+  <div id="stage" data-bg="checker"><img id="sprite" alt="Reimu eating-state sprite"></div>
+  <div id="state-label"></div>
+  <div class="row">
+    <span>tasks:</span>
+    <span id="debug-buttons" class="row"></span>
+    <input id="task-input" type="number" step="1" value="0">
+  </div>
+  <div class="row">
+    <span>size:</span>
+    <button data-size="160">160 pet</button>
+    <button data-size="240">240</button>
+    <button data-size="400" class="active">400</button>
+    <button data-size="596">596 native</button>
+    <span>bg:</span>
+    <button data-bg="checker" class="active">checker</button>
+    <button data-bg="desktop">desktop</button>
+    <button data-bg="dark">dark</button>
+  </div>
+  <div class="hint">keys 0–9 set the task count, ↑/↓ step it, ?tasks=N presets it</div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
