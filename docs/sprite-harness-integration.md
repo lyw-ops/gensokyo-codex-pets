@@ -1,7 +1,8 @@
 # Sprite Harness integration
 
-Status: **Eating Set v1 identity baseline shipped; the full source → build →
-validation → publish → runtime pipeline is in production use**
+Status: **Eating Set v1 identity baseline shipped and hardened (path
+isolation, set-level publish transaction, state-bound runtime manifests);
+Reimu Layered Assets v1 authoring contract ready, pilot assets pending**
 
 This document describes how `gensokyo-codex-pets` consumes
 [Sprite Harness](https://github.com/lyw-ops/Spirite-harness) as its animation
@@ -70,13 +71,24 @@ Build rules enforced by the entry point:
   PATH; if absent the build fails with install instructions — there is no
   fallback renderer;
 - every subprocess exit code is checked and every step runs in `--json` mode;
+- **filesystem boundary (fail closed)**: the disposable build area
+  (`--build-dir`) is validated against the source root, the publish root,
+  the layered asset root, and every individual source sprite before any
+  destructive operation — equality, containment in either direction, relative
+  aliases, and symlink aliases are all rejected on fully resolved paths;
 - a validation failure (or any unexpected validation warning) aborts the whole
-  run before anything is published: all requested states publish together or
-  none do;
-- publication is staged inside the state directory and the previous frame
-  generation is restored on failure, so `assets/` never holds a half-published
-  state;
-- the source SHA-256 is verified unchanged after building and after
+  run before anything is published;
+- **set-level publication transaction**: all requested states are staged
+  completely, the staged package is re-verified, and only then are states
+  committed as one logical generation. Any commit failure rolls back every
+  state changed by the run, so the published tree is never a mix of old and
+  new generations. If a rollback itself fails, the builder writes an explicit
+  recovery marker (`.publish-recovery.json`) next to the affected state,
+  preserves the staging directory (which still holds the previous
+  generation), and reports the failure — it never claims success.
+  `scripts/check-repository.sh` fails while a recovery marker exists;
+- `base.png` is never part of the transaction: it is immutable source (and
+  the runtime fallback) and is verified unchanged after building and after
   publishing;
 - repeated builds from identical inputs produce byte-identical published
   output (the harness renderer is deterministic and the manifest contains no
@@ -121,11 +133,19 @@ internal `frame-plan.json` and is the only animation file the runtime reads
 ```
 
 The preview app (`app/animations.js`) validates the manifest strictly,
-preloads every frame, and upgrades the state's ordered `frames[]` in place. A
-missing, malformed, or broken manifest drops that state to its static
+preloads every frame, and upgrades the state's ordered `frames[]` in place.
+Beyond the structural checks (version, frame paths, durations, loop flag,
+reduced-motion frame, image preload), every manifest is **semantically bound**
+to the state it is loaded for: `character`, `state_set`, and `state` must
+match the state set's declared binding (`app/characters.js`), so a manifest
+published for `task_3` can never be attached to `task_2`. A missing,
+malformed, mis-bound, or broken manifest drops that state to its static
 `base.png` with an explicit UI status and console warning — never silently.
-`scripts/check-repository.sh` re-verifies every published manifest: contiguous
-frame numbering, per-frame digests, the reduced-motion frame, and the recorded
+Full cryptographic verification stays out of the browser by design:
+SHA-256 integrity is enforced by the build pipeline and
+`scripts/check-repository.sh`, which re-verifies every published manifest:
+contiguous frame numbering, per-frame digests, the reduced-motion frame, the
+semantic binding, the absence of publish-recovery markers, and the recorded
 `base.png` digest.
 
 ## V1 limitation: flattened sprites, identity baseline
@@ -153,23 +173,41 @@ sources cannot support.
 **Local eating motion requires explicit layered source assets.** That is the
 next art milestone, not a build-tooling gap.
 
-## Future: layered sprites (Animation Plan v2)
+## Layered sprites (Animation Plan v2) — builder ready, assets pending
 
-When explicit Reimu layers exist (for example `body.png`, `head.png`,
-`eyes_open/closed.png`, `mouth_*.png`, `hand_right.png`, `food.png`,
-`table.png`, `tatami.png`), the same pipeline upgrades in place:
+The builder now supports two source modes behind the same pipeline and the
+same runtime contract:
 
-- `animation-set.json` state entries gain a v2 `source` override
-  (`reference_canvas` + ordered `layers`) and local tracks (breathing, head
-  bob, eating hand, blink, chew) — the builder already passes any per-state
-  override through to the generated plan;
-- `sprite-harness plan/render/validate` handle v2 natively (layered contract:
-  [`docs/layered-sprites.md`](https://github.com/lyw-ops/Spirite-harness/blob/main/docs/layered-sprites.md));
-- the published `animation.json` format and the app player do not change at
-  all — states simply gain more frames.
+- **`flattened`** (default) — Animation Plan v1 bound to the immutable
+  `base.png`, exactly as v1 shipped;
+- **`layered`** — a state entry sets the consumer key
+  `"source_mode": "layered"` (plus its local tracks); the builder composes a
+  legal Animation Plan v2 inline `source` (reference canvas + ordered layers)
+  from the machine-readable layer contract
+  ([`pets/reimu/layers/eating/layer-set.json`](../pets/reimu/layers/eating/layer-set.json))
+  and drives `sprite-harness plan` **without** `--source` (mixing modes is a
+  harness error). Missing required layer PNGs fail closed with
+  `ART ASSET REQUIRED`; layer files are SHA-verified unchanged after every
+  build; the layered asset root joins the filesystem-boundary check.
 
-Do not fake layers before then: no automatic body segmentation, bbox-guessed
-parts, color-based layer splits, or ignored `TARGET_TRACKS_SKIPPED` warnings.
+The published `animation.json` format and the app player do not change: a
+layered state's manifest carries a layered `source` binding (layer set +
+per-layer digests) instead of the `base.png` digest, and `base.png` remains
+the static/reduced-motion fallback. The preview app cannot tell (and does not
+need to know) whether frames came from v1 or v2 — that is the architecture
+boundary.
+
+The authoring contract, per-layer ownership, coordinate system, z-order,
+allowed/forbidden transforms, and the pilot (`task_2`) QA checklist live in
+[`reimu-layered-assets-v1.md`](reimu-layered-assets-v1.md). The layered v2
+path is integration-tested end to end against the real CLI with synthetic
+authored layers; **no real Reimu layer PNGs exist yet** — producing them is
+an explicit art task, not a tooling gap.
+
+Do not fake layers: no automatic body segmentation, bbox-guessed parts,
+color-based layer splits, AI inpainting, or ignored
+`TARGET_TRACKS_SKIPPED` warnings. The flattened sprites stay visual
+reference and runtime fallback only.
 
 ## Future: Codex v2 atlas boundary
 

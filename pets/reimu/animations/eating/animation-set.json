@@ -7,11 +7,13 @@
     "Consumer-side animation specification for the Reimu Eating Set v1.",
     "This file is NOT a Sprite Harness Animation Plan; tools/build_reimu_animations.py deterministically expands it into one legal plan per state and drives the public sprite-harness CLI.",
     "The current sources are flattened single-image sprites (base.png) that include the low table, food, and tatami. Whole-sprite motion moves the ground line and the food together with the character, so this baseline is deliberately an identity hold: one validated frame per state.",
-    "Local eating motion (breathing, head bob, chewing, blink) requires explicit layered source assets and an Animation Plan v2; see docs/sprite-harness-integration.md."
+    "Local eating motion (breathing, head bob, chewing, blink) requires explicit layered source assets and an Animation Plan v2; see docs/sprite-harness-integration.md and docs/reimu-layered-assets-v1.md.",
+    "A state opts into layered v2 by setting the consumer key \"source_mode\": \"layered\" (plus its local tracks); the builder then composes the plan's source object from layer_set. The key never reaches the generated plan. No state is layered yet: the authored layer PNGs do not exist (ART ASSET REQUIRED, pilot: task_2)."
   ],
   "source_root": "assets/reimu/eating",
   "publish_root": "assets/reimu/eating",
   "source_file": "base.png",
+  "layer_set": "pets/reimu/layers/eating/layer-set.json",
   "animation_id_prefix": "reimu_eating",
   "expected_validation_warnings": ["ZERO_MOTION"],
   "defaults": {

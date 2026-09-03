@@ -1,0 +1,153 @@
+{
+  "layer_set_version": 1,
+  "character": "reimu",
+  "state_set": "eating",
+  "contract_status": "authoring-contract-ready-assets-pending",
+  "notes": [
+    "Machine-readable layered-source contract for Reimu Eating Set layered assets v1.",
+    "This is consumer-side authoring metadata: tools/build_reimu_animations.py turns it into the inline `source` object of a Sprite Harness Animation Plan v2. It is not a harness schema and must not duplicate one.",
+    "Layers must be explicitly authored PNGs under asset_root; never derive them from the flattened base.png by segmentation, thresholding, inpainting, or bbox guessing.",
+    "All positions are PROVISIONAL until measured from the authored pilot layers (task_2); update them together with the first committed layer PNGs.",
+    "Human-facing specification, per-layer ownership, QA checklist: docs/reimu-layered-assets-v1.md."
+  ],
+  "reference_canvas": { "width": 596, "height": 596 },
+  "asset_root": "assets/reimu/layered/eating",
+  "layers": [
+    {
+      "id": "tatami",
+      "scope": "shared",
+      "image": "shared/tatami.png",
+      "anchor": { "type": "bottom_center" },
+      "position": { "x": 298, "y": 596 },
+      "z": 0,
+      "motion_policy": "static",
+      "position_status": "provisional",
+      "notes": "Ground plane. The tatami must never breathe, bob, or bounce."
+    },
+    {
+      "id": "body",
+      "scope": "shared",
+      "image": "shared/body.png",
+      "anchor": { "type": "bottom_center" },
+      "position": { "x": 298, "y": 560 },
+      "z": 10,
+      "motion_policy": "breathing",
+      "position_status": "provisional",
+      "notes": "Seated torso, legs, skirt, detached sleeves; excludes head, hands, props."
+    },
+    {
+      "id": "head",
+      "scope": "shared",
+      "image": "shared/head.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 220 },
+      "z": 20,
+      "motion_policy": "bob",
+      "position_status": "provisional",
+      "notes": "Hair, large red bow, face base. Excludes eyes and mouth so expressions stay discrete."
+    },
+    {
+      "id": "eyes_open",
+      "scope": "state",
+      "image": "{state}/eyes_open.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 210 },
+      "z": 30,
+      "motion_policy": "blink_visibility",
+      "position_status": "provisional",
+      "notes": "Tier-specific open eyes (tears, easing, happy arcs per emotional progression)."
+    },
+    {
+      "id": "eyes_closed",
+      "scope": "state",
+      "image": "{state}/eyes_closed.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 210 },
+      "z": 31,
+      "motion_policy": "blink_visibility",
+      "position_status": "provisional",
+      "required": false,
+      "notes": "Blink counterpart of eyes_open; optional until blink is animated for the state."
+    },
+    {
+      "id": "mouth",
+      "scope": "state",
+      "image": "{state}/mouth.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 252 },
+      "z": 40,
+      "motion_policy": "chew",
+      "position_status": "provisional",
+      "notes": "Tier-specific mouth; chew is a very small local motion or a variant layer."
+    },
+    {
+      "id": "hand_left",
+      "scope": "state",
+      "image": "{state}/hand_left.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 232, "y": 372 },
+      "z": 50,
+      "motion_policy": "static",
+      "position_status": "provisional",
+      "required": false,
+      "notes": "Far/resting hand; only authored when the state's pose shows it separately."
+    },
+    {
+      "id": "table",
+      "scope": "shared",
+      "image": "shared/table.png",
+      "anchor": { "type": "bottom_center" },
+      "position": { "x": 298, "y": 560 },
+      "z": 60,
+      "motion_policy": "static",
+      "position_status": "provisional",
+      "notes": "Low table in front of the seated body. The table ground line never moves."
+    },
+    {
+      "id": "table_food",
+      "scope": "state",
+      "image": "{state}/table_food.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 480 },
+      "z": 70,
+      "motion_policy": "static",
+      "position_status": "provisional",
+      "notes": "Tier-specific tabletop meal composition; no drift unless a track is explicitly designed."
+    },
+    {
+      "id": "held_food",
+      "scope": "state",
+      "image": "{state}/held_food.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 372, "y": 352 },
+      "z": 80,
+      "motion_policy": "follows_hand",
+      "position_status": "provisional",
+      "required": false,
+      "notes": "Food held by the eating hand (recurring onigiri anchor); shares the hand's motion tracks."
+    },
+    {
+      "id": "hand_right",
+      "scope": "state",
+      "image": "{state}/hand_right.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 382, "y": 372 },
+      "z": 90,
+      "motion_policy": "eating_hand",
+      "position_status": "provisional",
+      "notes": "Near eating hand, small local arc between table and mouth; must return naturally on loop."
+    },
+    {
+      "id": "effects",
+      "scope": "state",
+      "image": "{state}/effects.png",
+      "anchor": { "type": "center" },
+      "position": { "x": 298, "y": 150 },
+      "z": 100,
+      "motion_policy": "static",
+      "position_status": "provisional",
+      "required": false,
+      "notes": "Steam, sparkles, tears, sweat drop — foreground overlays owned per tier."
+    }
+  ]
+}

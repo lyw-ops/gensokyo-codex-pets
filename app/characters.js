@@ -25,6 +25,10 @@ export const characters = {
     displayName: 'Hakurei Reimu',
     stateSets: {
       eating: {
+        // Semantic binding checked against every loaded manifest
+        // (animations.js): a manifest published for another character,
+        // state set, or state must never be attached to this one.
+        binding: { character: 'reimu', stateSet: 'eating' },
         defaultState: 'idle',
         states: {
           idle:   eatingState('../assets/reimu/eating/idle'),

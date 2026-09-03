@@ -33,6 +33,9 @@ required_files=(
   tools/test_build_reimu_animations.py
   pets/reimu/animations/eating/animation-set.json
   docs/sprite-harness-integration.md
+  docs/reimu-layered-assets-v1.md
+  pets/reimu/layers/eating/layer-set.json
+  assets/reimu/layered/eating/README.md
 )
 
 for state in idle task_1 task_2 task_3 task_4 task_5; do
@@ -80,8 +83,34 @@ PY
   done
 done
 
-# Consumer animation spec and published runtime manifests must be valid JSON.
+# Consumer animation spec, layered-source contract, and published runtime
+# manifests must be valid JSON.
 python3 -m json.tool pets/reimu/animations/eating/animation-set.json >/dev/null
+python3 -m json.tool pets/reimu/layers/eating/layer-set.json >/dev/null
+
+# Layered sources are authored, never generated at runtime: the layered tree
+# may contain only PNGs (plus documentation), and layer-set layer ids must be
+# unique with unique z-order.
+python3 - <<'PY'
+import json, pathlib, sys
+
+layer_set = json.loads(pathlib.Path("pets/reimu/layers/eating/layer-set.json").read_text())
+ids = [layer["id"] for layer in layer_set["layers"]]
+zs = [layer["z"] for layer in layer_set["layers"]]
+failures = []
+if len(set(ids)) != len(ids):
+    failures.append("layer-set has duplicate layer ids")
+if len(set(zs)) != len(zs):
+    failures.append("layer-set has duplicate z-order values")
+if layer_set.get("reference_canvas") != {"width": 596, "height": 596}:
+    failures.append("layer-set reference_canvas must stay 596x596")
+for path in pathlib.Path("assets/reimu/layered").rglob("*"):
+    if path.is_file() and path.suffix not in (".png",) and path.name not in ("README.md", ".gitkeep"):
+        failures.append(f"unexpected file in layered source tree: {path}")
+for failure in failures:
+    print(f"layered contract check failed: {failure}", file=sys.stderr)
+sys.exit(1 if failures else 0)
+PY
 
 # Runtime manifest integrity: version, contiguous frame numbering, frame files
 # present with matching digests, reduced-motion frame declared, and the
@@ -101,6 +130,10 @@ for state in ["idle", "task_1", "task_2", "task_3", "task_4", "task_5"]:
         continue
     if manifest.get("state") != state:
         failures.append(f"{state}: manifest state mismatch: {manifest.get('state')}")
+    if manifest.get("character") != "reimu" or manifest.get("state_set") != "eating":
+        failures.append(f"{state}: manifest character/state_set binding mismatch")
+    if (state_dir / ".publish-recovery.json").exists():
+        failures.append(f"{state}: unresolved publish recovery marker present")
     frames = manifest.get("frames") or []
     if not frames:
         failures.append(f"{state}: manifest declares no frames")
