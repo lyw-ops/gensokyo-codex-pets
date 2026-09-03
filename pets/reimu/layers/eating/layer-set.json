@@ -2,15 +2,17 @@
   "layer_set_version": 1,
   "character": "reimu",
   "state_set": "eating",
-  "contract_status": "authoring-contract-ready-assets-pending",
+  "contract_status": "production-tooling-ready-art-asset-required",
   "notes": [
     "Machine-readable layered-source contract for Reimu Eating Set layered assets v1.",
     "This is consumer-side authoring metadata: tools/build_reimu_animations.py turns it into the inline `source` object of a Sprite Harness Animation Plan v2. It is not a harness schema and must not duplicate one.",
     "Layers must be explicitly authored PNGs under asset_root; never derive them from the flattened base.png by segmentation, thresholding, inpainting, or bbox guessing.",
     "All positions are PROVISIONAL until measured from the authored pilot layers (task_2); update them together with the first committed layer PNGs.",
+    "Pilot intake uses full 596x596 RGBA transparent canvases with each part already in final composition coordinates; no cropped layers. Provisional positions are NOT placement instructions for this export policy; calibrate only after real art arrives and before static reconstruction.",
     "Human-facing specification, per-layer ownership, QA checklist: docs/reimu-layered-assets-v1.md."
   ],
   "reference_canvas": { "width": 596, "height": 596 },
+  "canvas_policy": "full_canvas",
   "asset_root": "assets/reimu/layered/eating",
   "layers": [
     {

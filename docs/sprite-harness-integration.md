@@ -2,7 +2,8 @@
 
 Status: **Eating Set v1 identity baseline shipped and hardened (path
 isolation, set-level publish transaction, state-bound runtime manifests);
-Reimu Layered Assets v1 authoring contract ready, pilot assets pending**
+Reimu Layered Assets v1 production tooling and task_2 intake validation ready;
+ART ASSET REQUIRED**
 
 This document describes how `gensokyo-codex-pets` consumes
 [Sprite Harness](https://github.com/lyw-ops/Spirite-harness) as its animation
@@ -76,6 +77,8 @@ Build rules enforced by the entry point:
   the layered asset root, and every individual source sprite before any
   destructive operation — equality, containment in either direction, relative
   aliases, and symlink aliases are all rejected on fully resolved paths;
+  any configured `layer_set` protects its resolved `asset_root` even when
+  all requested states remain flattened;
 - a validation failure (or any unexpected validation warning) aborts the whole
   run before anything is published;
 - **set-level publication transaction**: all requested states are staged
@@ -145,8 +148,15 @@ Full cryptographic verification stays out of the browser by design:
 SHA-256 integrity is enforced by the build pipeline and
 `scripts/check-repository.sh`, which re-verifies every published manifest:
 contiguous frame numbering, per-frame digests, the reduced-motion frame, the
-semantic binding, the absence of publish-recovery markers, and the recorded
-`base.png` digest.
+semantic binding, the absence of publish-recovery markers, and the current
+source binding. Flattened manifests still require `file: base.png` and its
+matching SHA-256. Layered manifests must name the official layer-set path and
+bind exactly the currently applicable authored layer IDs in z-order, including
+present optional layers and excluding absent ones. The checker reopens PNGs,
+checks RGBA/transparency/canvas policy and digests, and rejects missing,
+duplicate, unknown or undeclared layers. Mixed flattened/layered states are
+the supported migration strategy. PNG inspection requires Pillow in the
+Python used by `scripts/check-repository.sh`; the Harness venv supplies it.
 
 ## V1 limitation: flattened sprites, identity baseline
 
@@ -188,12 +198,13 @@ same runtime contract:
   and drives `sprite-harness plan` **without** `--source` (mixing modes is a
   harness error). Missing required layer PNGs fail closed with
   `ART ASSET REQUIRED`; layer files are SHA-verified unchanged after every
-  build; the layered asset root joins the filesystem-boundary check.
+  build; the configured layered asset root is always protected.
 
 The published `animation.json` format and the app player do not change: a
 layered state's manifest carries a layered `source` binding (layer set +
 per-layer digests) instead of the `base.png` digest, and `base.png` remains
-the static/reduced-motion fallback. The preview app cannot tell (and does not
+the fallback when animation loading fails. Reduced motion holds the validated
+manifest's frame 0 when available. The preview app cannot tell (and does not
 need to know) whether frames came from v1 or v2 — that is the architecture
 boundary.
 
@@ -203,6 +214,14 @@ allowed/forbidden transforms, and the pilot (`task_2`) QA checklist live in
 path is integration-tested end to end against the real CLI with synthetic
 authored layers; **no real Reimu layer PNGs exist yet** — producing them is
 an explicit art task, not a tooling gap.
+
+Use the [Task 2 Layer Asset Intake Pack](task-2-layer-asset-intake.md) and
+`python3 tools/check_reimu_layer_assets.py` before production. The first
+pilot uses full 596×596 RGBA layer canvases. Intake READY does not certify
+the provisional positions or visual quality: calibrate from real PNGs,
+pass static reconstruction using a temporary config and `--no-publish`, then
+review restrained local motion before publishing task_2. The current
+production animation-set still keeps every state flattened.
 
 Do not fake layers: no automatic body segmentation, bbox-guessed parts,
 color-based layer splits, AI inpainting, or ignored

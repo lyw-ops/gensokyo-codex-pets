@@ -222,6 +222,12 @@ def load_layer_set(path: Path) -> dict:
     for key in ("character", "state_set", "reference_canvas", "asset_root", "layers"):
         if key not in layer_set:
             raise BuildError(f"layer set missing required key: {key}")
+    canvas = layer_set["reference_canvas"]
+    if not isinstance(canvas, dict) or any(type(canvas.get(key)) is not int or canvas[key] <= 0
+                                           for key in ("width", "height")):
+        raise BuildError("layer set reference_canvas must have positive integer dimensions")
+    if layer_set.get("canvas_policy") not in (None, "full_canvas"):
+        raise BuildError("unsupported layer canvas_policy; pilot requires full_canvas")
     if not layer_set["layers"]:
         raise BuildError("layer set declares no layers")
     seen_ids = set()
@@ -235,6 +241,29 @@ def load_layer_set(path: Path) -> dict:
             raise BuildError(f"duplicate layer id: {layer['id']}")
         seen_ids.add(layer["id"])
     return layer_set
+
+
+def applicable_layers(layer_set: dict, state_id: str) -> list[dict]:
+    """The shared state filter and back-to-front order for build and intake."""
+    layers = [layer for layer in layer_set["layers"]
+              if layer.get("states") is None or state_id in layer["states"]]
+    if not layers:
+        raise BuildError(f"layer set declares no layers applicable to state {state_id}")
+    zs = [layer["z"] for layer in layers]
+    if len(set(zs)) != len(zs):
+        raise BuildError(f"duplicate z-order among layers applicable to {state_id}")
+    return sorted(layers, key=lambda layer: layer["z"])
+
+
+def layer_image_path(layer: dict, state_id: str, layer_root: Path) -> Path:
+    """Resolve an authored PNG without allowing paths or aliases outside its root."""
+    relative = Path(layer["image"].replace("{state}", state_id))
+    path = layer_root / relative
+    if relative.is_absolute() or not path.resolve().is_relative_to(layer_root.resolve()):
+        raise BuildError(f"layer {layer['id']}: source file outside asset_root: {path}")
+    if relative.suffix != ".png" or relative.stem != layer["id"]:
+        raise BuildError(f"layer {layer['id']}: PNG filename must match layer id: {relative}")
+    return path
 
 
 def compose_layered_source(layer_set: dict, state_id: str, layer_root: Path,
@@ -251,25 +280,13 @@ def compose_layered_source(layer_set: dict, state_id: str, layer_root: Path,
     generated plan spec is written) plus [(layer_id, absolute_path, sha256)]
     for post-build immutability verification.
     """
-    applicable = []
-    for layer in layer_set["layers"]:
-        states = layer.get("states")
-        if states is not None and state_id not in states:
-            continue
-        applicable.append(layer)
-    if not applicable:
-        raise BuildError(f"layer set declares no layers applicable to state {state_id}")
-    zs = [layer["z"] for layer in applicable]
-    if len(set(zs)) != len(zs):
-        raise BuildError(f"duplicate z-order among layers applicable to {state_id}")
-    applicable.sort(key=lambda layer: layer["z"])
+    applicable = applicable_layers(layer_set, state_id)
 
     source_layers = []
     layer_files: list[tuple[str, Path, str]] = []
     missing = []
     for layer in applicable:
-        image_rel = layer["image"].replace("{state}", state_id)
-        image_path = layer_root / image_rel
+        image_path = layer_image_path(layer, state_id, layer_root)
         if not image_path.is_file():
             if layer.get("required", True):
                 missing.append(f"{layer['id']} -> {image_path}")
@@ -709,15 +726,15 @@ def main(argv: list[str] | None = None) -> int:
         publish_root = (args.publish_root or (REPO_ROOT / config["publish_root"])).resolve()
         state_ids = args.states or list(config["states"])
 
-        # Layered states (Animation Plan v2) need the authored layer contract.
+        # A declared layer root is immutable even while every state is flattened.
         layered_states = [s for s in state_ids if state_source_mode(config, s) == "layered"]
         layer_set = None
         layer_root = None
-        if layered_states:
-            if "layer_set" not in config:
-                raise BuildError(
-                    f"states {layered_states} declare source_mode 'layered' but the "
-                    "config has no 'layer_set' path")
+        if layered_states and "layer_set" not in config:
+            raise BuildError(
+                f"states {layered_states} declare source_mode 'layered' but the "
+                "config has no 'layer_set' path")
+        if "layer_set" in config:
             layer_set = load_layer_set(REPO_ROOT / config["layer_set"])
             layer_root = (REPO_ROOT / layer_set["asset_root"]).resolve()
 

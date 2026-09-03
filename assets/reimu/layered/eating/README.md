@@ -8,6 +8,12 @@ renderer or the builder.
 - Contract (machine-readable): `pets/reimu/layers/eating/layer-set.json`
 - Specification, per-layer ownership, QA checklist:
   `docs/reimu-layered-assets-v1.md`
+- Exact eight required pilot PNGs, recommended/optional layers, full 596×596
+  export policy and static reconstruction sequence:
+  `docs/task-2-layer-asset-intake.md`
+- Read-only intake: `python3 tools/check_reimu_layer_assets.py` from the
+  repository root (Python with Pillow). Prints `READY` or `ART ASSET REQUIRED`
+  with exact paths. READY is file validation, not visual approval.
 
 ```text
 shared/    layers used by all six states (tatami, body, head, table)

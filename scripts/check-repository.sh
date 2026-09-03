@@ -30,10 +30,12 @@ required_files=(
   app/README.md
   tools/split_eating_sheet.py
   tools/build_reimu_animations.py
+  tools/check_reimu_layer_assets.py
   tools/test_build_reimu_animations.py
   pets/reimu/animations/eating/animation-set.json
   docs/sprite-harness-integration.md
   docs/reimu-layered-assets-v1.md
+  docs/task-2-layer-asset-intake.md
   pets/reimu/layers/eating/layer-set.json
   assets/reimu/layered/eating/README.md
 )
@@ -114,9 +116,10 @@ PY
 
 # Runtime manifest integrity: version, contiguous frame numbering, frame files
 # present with matching digests, reduced-motion frame declared, and the
-# immutable base.png digest recorded at build time still matching the file.
+# immutable source binding (base.png or the state's authored layer PNGs).
 python3 - <<'PY'
 import hashlib, json, pathlib, sys
+from tools.check_reimu_layer_assets import validate_runtime_source
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -158,8 +161,8 @@ for state in ["idle", "task_1", "task_2", "task_3", "task_4", "task_5"]:
     if reduced not in declared:
         failures.append(f"{state}: reduced_motion.frame not among declared frames")
     source = manifest.get("source") or {}
-    if source.get("file") != "base.png" or sha256(state_dir / "base.png") != source.get("sha256"):
-        failures.append(f"{state}: manifest source binding does not match base.png")
+    failures.extend(f"{state}: {error}" for error in
+                    validate_runtime_source(source, state, pathlib.Path.cwd()))
 
 for failure in failures:
     print(f"animation manifest check failed: {failure}", file=sys.stderr)

@@ -1,6 +1,9 @@
 # Reimu Layered Assets v1 — asset production specification
 
-Status: **authoring contract ready, pilot assets pending**
+Status: **production tooling ready; task_2 intake validation ready; ART ASSET REQUIRED**
+
+The actionable delivery checklist and current asset inventory are in the
+[Task 2 Layer Asset Intake Pack](task-2-layer-asset-intake.md).
 
 This document specifies the explicitly authored PNG layers that upgrade the
 Reimu Eating Set from the flattened v1 identity baseline to real local motion
@@ -39,15 +42,18 @@ and is not duplicated here.
 - Every layer declares an **anchor** (`center`, `bottom_center`, or normalized
   `custom`) and a **position** in reference-canvas pixels: the anchor point of
   the layer image maps to the declared position (plus local translation).
-  Ground-contact layers (`tatami`, `body`, `table`) use `bottom_center` so
-  their ground lines are pinned; floating detail layers use `center`.
-- Layer PNGs should be tightly cropped around their content with a small
-  transparent margin (≥ 2 px, so bilinear resampling never clips) — **not**
-  full 596×596 canvases with the content somewhere inside, and never an
-  arbitrary canvas without coordinate semantics.
-- All positions in the current layer-set are **provisional**. When the pilot
-  layers are authored, measure the real anchor positions from the approved
-  composition and update `layer-set.json` in the same commit as the PNGs.
+  The existing bottom-center/center anchors and their positions are historical
+  provisional values, not approved placements for the incoming artwork.
+- Pilot export uses **full 596×596 transparent RGBA canvases**: every part
+  stays in final composition coordinates. `canvas_policy: full_canvas` is
+  checked by intake and layered runtime validation. No trimming, recentering,
+  or mixing cropped and full-canvas exports.
+- All positions remain **provisional** until real PNGs arrive. Inspect alpha
+  bounds and alignment, then update placement metadata with the real art.
+  A top-left custom anchor at position `(0, 0)` preserves a full canvas
+  unchanged; any other anchor must map to its corresponding pixel position
+  for identity placement. Do not apply the old provisional translations to
+  full-canvas exports. See the intake pack's calibration and static gate.
 
 ## Layer schema and z-order
 
@@ -116,7 +122,10 @@ food and hand never separate.
 
 **`hand_right`** — The near eating hand. Small local arc between table height
 and mouth height; the loop must return it naturally (sine-family curves with
-integer cycles), never teleport it.
+integer cycles), never teleport it. For the minimum eight-file pilot, this
+layer may own the co-moving two-hand grip and held onigiri when those optional
+layers are absent; document that ownership and never duplicate the pixels.
+Separate gripping hands/held food must stay coordinated during motion.
 
 **`effects`** — Foreground overlays owned per tier: steam, sparkles, happy
 tears, the single allowed sweat cue at tier 4. Static in the pilot.
@@ -145,8 +154,9 @@ assets/reimu/layered/eating/
 - Lowercase snake_case ids; the file name equals the layer id, `.png` only.
 - Shared layers live in `shared/` and are used by all six states; the
   layer-set's `{state}` placeholder resolves state-specific paths.
-- PNG with a real alpha channel (RGBA or LA; the harness also accepts a
-  transparent palette). No matte, no white background, no premultiplied
+- Full-canvas RGBA PNG with actual transparent pixels; required layers must
+  have visible pixels. This consumer intake is stricter than Harness's
+  general alpha-format support. No matte, white background or premultiplied
   export artifacts. Keep visible content off the image edge.
 - Optional layers (`required: false` in the layer-set) may be absent for a
   state; required layers missing at build time fail with `ART ASSET REQUIRED`.
@@ -168,7 +178,7 @@ Allowed (all local, all restrained; Reimu should feel alive, not busy):
 
 - `body` translate_y breathing ≤ ~1.5 px amplitude, sine, integer cycles;
 - `head` translate_y bob ≤ ~1 px and/or rotate ≤ ~0.5°, in phase with the body;
-- `hand_right` (+ `held_food`, identical tracks) translate arc ≤ ~4 px;
+- `hand_right` (+ `held_food`, coordinated tracks) starts around 1–3 px;
 - `eyes_open`/`eyes_closed` complementary opacity (blink);
 - `mouth` translate ≤ ~1 px or opacity variant (chew).
 
@@ -198,29 +208,33 @@ material. Reference art is never loaded at runtime.
 `task_2` is the pilot state: medium complexity, held food + table food, and
 the transitional expression (residual tears, visibly easing) — enough to
 exercise body/head/face/hand/prop decomposition without the tier 5 banquet.
-If authoring proves `task_3` fits better, switch and record the reason in
-`HANDOFF.md`.
+Changing pilot state requires a concrete unavoidable visual reason recorded
+in `HANDOFF.md`; task_2 remains the selected pilot.
 
-Pilot animation scope (all together, all subtle): breathing (body-local),
-small eating-hand motion, blink, chew, optional very slight head bob. First
-frame must be a natural rest pose (it is the reduced-motion still).
+Pilot animation priority: very slight body breathing, then small eating-hand
+motion. Blink and chew are conditional on visual quality; head bob is last.
+Start at 8 fps, 12 frames, loop. First frame must be a natural rest pose
+(it is the reduced-motion still).
 
 ### ART ASSET REQUIRED — pilot request
 
 To start the pilot, the maintainer (or an explicitly authorized art pass)
-must produce these PNGs (tight crops, alpha, 596-canvas coordinates):
+must produce these full 596×596 RGBA PNGs:
 
 ```text
 shared/tatami.png      shared/body.png     shared/head.png    shared/table.png
-task_2/eyes_open.png   task_2/eyes_closed.png   task_2/mouth.png
-task_2/hand_right.png  task_2/held_food.png     task_2/table_food.png
-optional: task_2/hand_left.png  task_2/effects.png
+task_2/eyes_open.png   task_2/mouth.png
+task_2/hand_right.png  task_2/table_food.png
+recommended optional: task_2/eyes_closed.png  task_2/held_food.png
+only when needed: task_2/hand_left.png  task_2/effects.png
 ```
 
-After committing them: measure and update the provisional positions in
-`layer-set.json`, set `"source_mode": "layered"` plus the pilot tracks on
-`task_2` in `pets/reimu/animations/eating/animation-set.json`, and run
-`python3 tools/build_reimu_animations.py --states task_2`.
+Run `python3 tools/check_reimu_layer_assets.py` for exact missing/invalid
+paths. After intake is READY, inspect real art and calibrate positions, then
+use a temporary config with `--no-publish` for the static reconstruction.
+Only after that passes should task_2's production config become layered with
+motion tracks. Review animation using `--no-publish`; publication follows
+recorded visual approval. The intake pack gives the full sequence.
 
 ## QA checklist (pilot acceptance)
 
@@ -240,6 +254,5 @@ then review:
   the approved flattened `task_2/base.png` (not pixel-identical, but the same
   approved composition).
 
-Only after the pilot passes does the same contract scale to `idle` and
-`task_1`–`task_5`, keeping motion intensity close across tiers while the
-expression semantics follow the locked tier 0–5 emotional progression.
+Stop at task_2 pilot validation for maintainer review. Other-state expansion
+and the Codex atlas require a subsequent task.

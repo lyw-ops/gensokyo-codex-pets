@@ -5,7 +5,7 @@ Run from the repository root:
 
     python3 -m unittest tools.test_build_reimu_animations -v
 
-Unit tests are dependency-free. The integration test drives the real
+PNG intake tests require Pillow. The integration test drives the real
 sprite-harness CLI end to end and is skipped (loudly) when the executable is
 not available via --harness conventions (SPRITE_HARNESS_BIN or PATH).
 """
@@ -13,18 +13,23 @@ not available via --harness conventions (SPRITE_HARNESS_BIN or PATH).
 from __future__ import annotations
 
 import json
+import contextlib
+import io
 import os
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_reimu_animations as build  # noqa: E402
+import check_reimu_layer_assets as intake  # noqa: E402
 
 
 def make_test_config(tmp: Path) -> dict:
@@ -591,6 +596,268 @@ class LayeredSourceTests(unittest.TestCase):
         path.write_text(json.dumps(bad))
         with self.assertRaises(build.BuildError):
             build.load_layer_set(path)
+
+
+class LayerRootProtectionTests(unittest.TestCase):
+    """Exercise main's config loading while all six states remain flattened."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.layer_root = self.tmp / "work" / "layers"
+        self.layer_png = self.layer_root / "idle" / "marker.png"
+        write_rgba_png(self.layer_png)
+        self.base = self.tmp / "sources" / "idle" / "base.png"
+        write_rgba_png(self.base)
+        self.config = make_test_config(self.tmp)
+        self.config.update(source_root="sources", publish_root="published", layer_set="layers.json")
+        self.config["states"] = {s: {} for s in ["idle", "task_1", "task_2", "task_3", "task_4", "task_5"]}
+        (self.tmp / "config.json").write_text(json.dumps(self.config))
+        self.layer_set = make_layer_set(self.layer_root)
+        (self.tmp / "layers.json").write_text(json.dumps(self.layer_set))
+
+    def expect_rejected(self, build_dir):
+        before = {p: p.read_bytes() for p in (self.base, self.layer_png)}
+        errors = io.StringIO()
+        with mock.patch.object(build, "REPO_ROOT", self.tmp), \
+                mock.patch.object(build, "find_harness", return_value="never-run"), \
+                mock.patch.object(build, "harness_version") as version, \
+                mock.patch.object(build, "build_state") as build_state, \
+                mock.patch.object(build.shutil, "rmtree") as delete, \
+                contextlib.redirect_stderr(errors):
+            result = build.main(["--config", str(self.tmp / "config.json"),
+                                 "--build-dir", str(build_dir)])
+        self.assertEqual(result, 1)
+        self.assertIn("layer_root", errors.getvalue())
+        self.assertIn("unsafe build directory", errors.getvalue())
+        version.assert_not_called()
+        build_state.assert_not_called()
+        delete.assert_not_called()
+        self.assertEqual({p: p.read_bytes() for p in before}, before)
+
+    def test_build_dir_equal_layer_root_fails_even_when_no_layered_state_enabled(self):
+        self.expect_rejected(self.layer_root)
+
+    def test_build_dir_inside_layer_root_fails(self):
+        self.expect_rejected(self.layer_root / "build")
+
+    def test_layer_root_inside_build_dir_fails(self):
+        self.expect_rejected(self.layer_root.parent)
+
+    def test_layer_root_symlink_alias_fails(self):
+        alias = self.tmp / "harmless"
+        alias.symlink_to(self.layer_root, target_is_directory=True)
+        self.expect_rejected(alias)
+        # The contract itself can also reach the protected root through an alias.
+        self.layer_set["asset_root"] = str(alias)
+        (self.tmp / "layers.json").write_text(json.dumps(self.layer_set))
+        self.expect_rejected(self.layer_root)
+
+
+class RepositorySourceGateTests(unittest.TestCase):
+    """Run the actual repository script against mixed-mode disposable fixtures."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.repo = self.tmp / "repo"
+        shutil.copytree(build.REPO_ROOT, self.repo,
+                        ignore=shutil.ignore_patterns(".git", "build", ".venv", "__pycache__"))
+        self.layer_set = build.load_layer_set(self.repo / intake.LAYER_SET)
+        self.layer_root = self.repo / self.layer_set["asset_root"]
+        self.manifest_path = self.repo / "assets/reimu/eating/task_2/animation.json"
+        self.manifest = json.loads(self.manifest_path.read_text())
+
+    def authored_layers(self):
+        entries = []
+        for layer in sorted(self.layer_set["layers"], key=lambda item: item["z"]):
+            if not layer.get("required", True):
+                continue
+            path = self.layer_root / layer["image"].replace("{state}", "task_2")
+            write_rgba_png(path, width=596, height=596)
+            entries.append({"id": layer["id"], "sha256": build.sha256_file(path)})
+        self.manifest["source"] = {"mode": "layered", "layer_set": intake.LAYER_SET,
+                                   "layers": entries}
+
+    def run_check(self, expected=0, message=None):
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        pngs = list(self.repo.glob("assets/reimu/eating/*/base.png")) + list(self.layer_root.rglob("*.png"))
+        before = {p: p.read_bytes() for p in pngs}
+        env = dict(os.environ, PATH=str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"])
+        result = subprocess.run(["bash", "scripts/check-repository.sh"], cwd=self.repo,
+                                capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+        if message:
+            self.assertIn(message, result.stderr)
+        self.assertEqual({p: p.read_bytes() for p in before}, before,
+                         "repository check must leave layer PNG and base.png bytes unchanged")
+
+    def test_check_repository_accepts_flattened_manifest(self):
+        self.run_check()
+
+    def test_flattened_wrong_sha_fails(self):
+        self.manifest["source"]["sha256"] = "0" * 64
+        self.run_check(1, "does not match base.png")
+
+    def test_check_repository_accepts_layered_manifest(self):
+        self.authored_layers()  # Other five manifests remain flattened.
+        self.run_check()
+
+    def test_layered_manifest_wrong_layer_set_fails(self):
+        self.authored_layers()
+        self.manifest["source"]["layer_set"] = "wrong.json"
+        self.run_check(1, "wrong layer_set")
+
+    def test_layered_manifest_missing_required_layer_fails(self):
+        self.authored_layers()
+        self.manifest["source"]["layers"].pop()
+        self.run_check(1, "layer ids mismatch")
+
+    def test_layered_required_png_missing_fails(self):
+        self.authored_layers()
+        (self.layer_root / "shared/body.png").unlink()
+        self.run_check(1, "missing required layer body")
+
+    def test_layered_manifest_wrong_sha_fails(self):
+        self.authored_layers()
+        self.manifest["source"]["layers"][0]["sha256"] = "0" * 64
+        self.run_check(1, "SHA-256 mismatch")
+
+    def test_layered_manifest_unknown_layer_fails(self):
+        self.authored_layers()
+        self.manifest["source"]["layers"].append({"id": "unknown", "sha256": "0" * 64})
+        self.run_check(1, "layer ids mismatch")
+
+    def test_layered_manifest_duplicate_layer_fails(self):
+        self.authored_layers()
+        self.manifest["source"]["layers"].append(self.manifest["source"]["layers"][0])
+        self.run_check(1, "duplicate layer id")
+
+    def test_present_optional_layer_must_be_bound(self):
+        self.authored_layers()
+        path = self.layer_root / "task_2/effects.png"
+        write_rgba_png(path, width=596, height=596)
+        self.run_check(1, "layer ids mismatch")
+        self.manifest["source"]["layers"].append({"id": "effects", "sha256": build.sha256_file(path)})
+        self.run_check()
+
+    def test_absent_optional_layer_must_not_be_bound(self):
+        self.authored_layers()
+        self.manifest["source"]["layers"].append({"id": "effects", "sha256": "0" * 64})
+        self.run_check(1, "layer ids mismatch")
+
+    def test_undeclared_authored_png_fails(self):
+        self.authored_layers()
+        write_rgba_png(self.layer_root / "task_2/unknown.png")
+        self.run_check(1, "unexpected authored PNG")
+
+    def test_layered_png_invalid_format_or_dimensions_fails(self):
+        self.authored_layers()
+        from PIL import Image
+        path = self.layer_root / "shared/body.png"
+        for mode, size, expected in [("RGB", (596, 596), "expected RGBA"),
+                                     ("RGBA", (597, 596), "dimensions")]:
+            with self.subTest(mode=mode, size=size):
+                Image.new(mode, size).save(path)
+                self.run_check(1, expected)
+
+
+class LayerIntakeTests(unittest.TestCase):
+    """Tiny synthetic PNGs exercise intake; none are production artwork."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.layer_root = self.tmp / "layers"
+        self.layer_set = make_layer_set(self.layer_root)
+        self.layer_set["canvas_policy"] = "full_canvas"
+        self.layer = self.layer_set["layers"][0]
+        self.marker = self.layer_root / "task_2/marker.png"
+        self.panel = self.layer_root / "shared/panel.png"
+        write_rgba_png(self.marker, 16, 16)
+        write_rgba_png(self.panel, 16, 16)
+
+    def inspect(self):
+        before = {p: p.read_bytes() for p in self.layer_root.rglob("*.png") if p.is_file()}
+        result = intake.inspect_assets(self.layer_set, "task_2", self.layer_root)
+        self.assertEqual({p: p.read_bytes() for p in before}, before)
+        return result
+
+    def run_intake(self):
+        contract = self.tmp / intake.LAYER_SET
+        contract.parent.mkdir(parents=True, exist_ok=True)
+        contract.write_text(json.dumps(self.layer_set))
+        config_path = self.tmp / "pets/reimu/animations/eating/animation-set.json"
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config = make_test_config(self.tmp)
+        config.update(layer_set=intake.LAYER_SET, states={"task_2": {}})
+        config_path.write_text(json.dumps(config))
+        output = io.StringIO()
+        with mock.patch.object(build, "REPO_ROOT", self.tmp), contextlib.redirect_stdout(output):
+            code = intake.main([])
+        return code, output.getvalue()
+
+    def test_intake_ready_without_optional_layers(self):
+        code, output = self.run_intake()
+        self.assertEqual(code, 0, output)
+        self.assertTrue(output.startswith("READY\n"))
+        self.assertIn("Optional layers absent (not blockers)", output)
+
+    def test_intake_lists_every_missing_required_file(self):
+        self.marker.unlink()
+        self.panel.unlink()
+        code, output = self.run_intake()
+        self.assertEqual(code, 1)
+        self.assertTrue(output.startswith("ART ASSET REQUIRED\n"))
+        self.assertIn("layers/task_2/marker.png", output)
+        self.assertIn("layers/shared/panel.png", output)
+
+    def test_intake_rejects_invalid_png_rgba_alpha_and_dimensions(self):
+        from PIL import Image
+        cases = [("RGBA", (16, 16), (0, 0, 0, 0), "fully transparent"),
+                 ("RGBA", (16, 16), (0, 0, 0, 255), "no transparent pixels"),
+                 ("RGB", (16, 16), (0, 0, 0), "expected RGBA"),
+                 ("LA", (16, 16), (0, 0), "expected RGBA"),
+                 ("RGBA", (8, 8), (0, 0, 0, 0), "dimensions")]
+        for mode, size, color, expected in cases:
+            with self.subTest(mode=mode, size=size, color=color):
+                Image.new(mode, size, color).save(self.marker)
+                self.assertIn(expected, "\n".join(self.inspect()[1]))
+        self.marker.write_bytes(b"not a PNG")
+        self.assertIn("unreadable PNG", "\n".join(self.inspect()[1]))
+        write_rgba_png(self.marker, 16, 16)
+        self.marker.write_bytes(self.marker.read_bytes()[:40])
+        self.assertIn("unreadable PNG", "\n".join(self.inspect()[1]))
+
+    def test_intake_rejects_path_escape_and_symlink_escape(self):
+        outside = self.tmp / "marker.png"
+        write_rgba_png(outside, 16, 16)
+        self.layer["image"] = "../marker.png"
+        self.assertIn("outside asset_root", "\n".join(self.inspect()[1]))
+        self.layer["image"] = "{state}/marker.png"
+        self.marker.unlink()
+        self.marker.symlink_to(outside)
+        self.assertIn("outside asset_root", "\n".join(self.inspect()[1]))
+        with self.assertRaisesRegex(build.BuildError, "outside asset_root"):
+            build.compose_layered_source(self.layer_set, "task_2", self.layer_root, self.tmp / "build")
+
+    def test_intake_rejects_filename_id_mismatch(self):
+        self.layer["image"] = "{state}/different.png"
+        self.assertIn("filename must match layer id", "\n".join(self.inspect()[1]))
+
+    def test_intake_rejects_unexpected_png(self):
+        write_rgba_png(self.layer_root / "task_2/unknown.png")
+        code, output = self.run_intake()
+        self.assertEqual(code, 1)
+        self.assertIn("unexpected authored PNG", output)
+
+    def test_intake_filters_state_restrictions_like_builder(self):
+        self.layer["states"] = ["task_1"]
+        records, failures, _ = self.inspect()
+        self.assertFalse(failures)
+        self.assertEqual([entry["id"] for entry in records], ["panel"])
+        source, _ = build.compose_layered_source(self.layer_set, "task_2", self.layer_root, self.tmp / "build")
+        self.assertEqual([entry["target"] for entry in source["layers"]], ["panel"])
 
 
 def harness_available() -> bool:
