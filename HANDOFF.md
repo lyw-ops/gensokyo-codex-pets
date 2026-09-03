@@ -1,6 +1,6 @@
 # GPT project handoff / GPT 项目交接
 
-Last updated: **2026-09-02**
+Last updated: **2026-09-03**
 
 This is the canonical handoff entry for Gensokyo Codex Pets. Every GPT or human contributor should read this file and `AGENTS.md` before changing the repository, then update this file in the same commit as their work.
 
@@ -40,10 +40,10 @@ git log --oneline --decorate -5
 ## 3. Current project state
 
 - Project phase: **Phase 1 — Hakurei Reimu only**.
-- Current milestone: **Eating Set v1 static prototype — approved concept sheet committed, six runtime sprites derived, and a static state-switching preview app with a debug task provider implemented. Next: maintainer review of the static prototype before any animation or real workload integration.**
-- Repository content: documentation, design constraints, behavior/action specification, metadata example, validation script, approved Eating Set v1 reference art (`docs/reference/reimu/eating_set_v1/`), six derived runtime sprites (`assets/reimu/eating/`), the deterministic derivation script (`tools/split_eating_sheet.py`), and the static preview app (`app/`).
-- Visual-reference status: the maintainer approved the 2026-09-02 six-panel Eating Set v1 sheet and instructed committing it as reference art; the older GPT composition prototypes and all downloaded third-party fan art remain outside the repository.
-- Sprite status: **six static 596×596 RGBA eating-state sprites exist** (`idle`, `task_1`–`task_5`), mechanically derived from the approved sheet; no animation frames and no Codex atlas art exist yet.
+- Current milestone: **Sprite Harness integration shipped (Eating Set v1 identity baseline)** — the full consumer pipeline (source → Animation Plan → sprite-harness build/validation → published runtime manifest → app `frames[]` playback) is implemented, tested, and in use for all six eating states. The published animation content is deliberately a one-frame identity hold per state because the flattened sources cannot support local motion (see `docs/sprite-harness-integration.md`). Next: maintainer review, then explicit layered Reimu source assets for real local motion.
+- Repository content: documentation, design constraints, behavior/action specification, metadata example, validation script, approved Eating Set v1 reference art (`docs/reference/reimu/eating_set_v1/`), six derived runtime sprites plus published animation manifests and validated frames (`assets/reimu/eating/`), the consumer animation spec (`pets/reimu/animations/eating/animation-set.json`), the Sprite Harness build entry point and tests (`tools/build_reimu_animations.py`, `tools/test_build_reimu_animations.py`), the integration contract (`docs/sprite-harness-integration.md`), and the frames[]-playback preview app (`app/`).
+- Animation pipeline status: **production pipeline live** against Sprite Harness 0.7.0 via its public CLI/JSON contract only (no harness modules imported, no harness core changes needed); builds are deterministic (repeated builds are byte-identical) and validation failures block publication.
+- Sprite status: six static 596×596 RGBA eating-state sprites (`idle`, `task_1`–`task_5`) remain the immutable sources; each state also carries `animation.json` + `frames/frame_000.png` (identity baseline, byte-identical to `base.png`). No multi-frame motion and no Codex atlas art exist yet — both are gated on future layered assets.
 - Runtime status: **no workload adapter exists yet**; the preview app uses a manual debug task count only.
 - Installation status: **no installable pet package exists yet**.
 - GitHub status: `main` is the synchronized project branch; verify the latest commit against `origin/main` at the start and end of every task.
@@ -65,6 +65,8 @@ git log --oneline --decorate -5
 - Authored the Reimu action system: a two-axis `WorkloadState × CharacterBehavior` model, a priority-banded FSM with base/transient/transition/held state classes, an autonomous scheduler with cooldowns, a sleep chain, interaction reactions, drag-as-flight, a design-only incident chain, a reusable eating vocabulary, and the locked tier 0–5 emotion progression.
 - Registered all 35 actions in `pets/reimu/metadata/actions.json`, explicitly marked as a project-internal behavior specification rather than a Codex manifest.
 - Extended `docs/reimu-design.md` (standard Codex actions vs. extended behavior vocabulary) and `pets/reimu/design/visual-spec.md` (per-action-category silhouette, expression, prop, and consistency constraints).
+- Integrated Sprite Harness as the animation production and validation tool: consumer animation spec, deterministic build entry point (`plan → render → validate --write-qa → preview → contact-sheet → report`, all via the public CLI in `--json` mode with exit-code checks), staged fail-safe publication of `animation.json` + validated frames per state, strict runtime-manifest loading with explicit static fallback, frames[] playback with reduced-motion support in the preview app, extended repository checks (manifest/frame/digest integrity), a 14-test pipeline suite, and the integration contract document.
+- Measured and documented the flattened-sprite motion limitation (whole-sprite translation moves the tatami ground line by the full amplitude) and shipped the identity baseline instead of fake motion.
 
 ## 5. Decisions currently in force
 
@@ -90,7 +92,12 @@ git log --oneline --decorate -5
 - Exception decided by the maintainer on 2026-09-02: the approved **Eating Set v1** sheet (their own generated concept art) is committed under `docs/reference/reimu/eating_set_v1/` and is the source of the runtime sprites. Reference art is never loaded at runtime; runtime code loads only `assets/reimu/eating/`.
 - Runtime sprites are derived mechanically (`tools/split_eating_sheet.py`): alpha-connectivity panel segmentation, nearest-panel assignment of floating effects, bottom-center anchoring on a 596×596 transparent canvas; no repainting, no non-uniform scaling. Regenerate from an updated approved sheet instead of hand-editing `base.png` files.
 - The task-count → eating-state mapping lives only in `app/task-state-mapping.js` (`0 → idle`, `1..4 → task_n`, `>= 5 → task_5`, negative/invalid → `idle`); the character model is `Character → StateSet → State → frames[]` (`app/characters.js`) so additional characters and future multi-frame animation extend data, not code.
-- The current milestone is deliberately static: no GIF playback, sprite-sheet loops, or procedural motion in the preview app.
+- Animation production and validation go through Sprite Harness (`https://github.com/lyw-ops/Spirite-harness`, canonical contract `HARNESS.md`) using only its public CLI/JSON interface. Do not vendor or re-implement harness internals, do not add Reimu-specific logic to the harness core, and do not modify the harness from consumer tasks unless a reproducible harness bug is found.
+- The task-count → state policy stays solely in `app/task-state-mapping.js`; the animation pipeline, manifests, and player never re-implement `min(taskCount, 5)`.
+- Published runtime animation artifacts (`assets/reimu/eating/<state>/animation.json` + `frames/`) are produced only by `tools/build_reimu_animations.py` after harness validation passes; `base.png` is immutable source and doubles as the explicit static fallback. The runtime never reads `build/` (gitignored, disposable).
+- The Eating Set v1 baseline is an identity hold (one validated frame per state). Whole-sprite motion on the flattened sources is rejected by measurement: the ground line moves with the full motion amplitude. Real local motion (breathing, chewing, blink…) is gated on explicit layered Reimu PNGs and Animation Plan v2 — never approximate layers from the flattened sprite.
+- The build pipeline is offline and deterministic; Sprite Harness M4 generation (paid provider calls) is never invoked implicitly and requires explicit maintainer authorization.
+- `ReimuFoodTier`/`task_1..task_5` and the Codex v2 atlas rows are different state spaces; do not map food tiers onto Codex standard rows or claim task-count-driven Codex behavior. The future atlas path is documented in `docs/sprite-harness-integration.md` and requires new per-row visual assets.
 - Unavailable or invalid activity data selects tier `0` as an explicitly degraded fallback and must not be reported as an observed zero.
 - The current custom-pet manifest does not expose active-task, workflow, tool, or subagent counts. Do not claim live workload behavior until a supported and tested interface exists.
 
@@ -122,19 +129,21 @@ git log --oneline --decorate -5
 
 Do these in order; do not skip ahead.
 
-1. Maintainer reviews the six static runtime states in the preview app (`app/README.md`), especially readability at 160 px pet size and the state-switch ground anchor.
+1. Maintainer reviews the Sprite Harness integration: the identity-baseline decision and its measured rationale (`docs/sprite-harness-integration.md`), the published `animation.json` manifests, and the preview app's playback/fallback/reduced-motion behavior at 160 px pet size.
 2. Maintainer reviews the outstanding action-system and visual-system decisions above where they still apply to future animation work.
-3. Only after that review: plan animation frames per state (the `frames[]` model is already in place) and the Codex atlas pipeline.
-4. Investigate workload integration separately; the static preview's debug task count must not be presented as live Codex integration.
+3. Produce explicit layered Reimu source assets (body/head/eyes/mouth/hand/food/table/tatami PNGs) for the eating states, then upgrade the animation spec to Animation Plan v2 local tracks — the build pipeline, manifest format, and app player are already prepared for this and do not need structural changes.
+4. Only after layered animations exist: design the Codex standard-row performances and use the harness M5 atlas export along the boundary documented in `docs/sprite-harness-integration.md`.
+5. Investigate workload integration separately; the preview's debug task count must not be presented as live Codex integration.
 
 ## 8. Current handoff status
 
 - Blockers: none for repository synchronization.
-- Validation command: `./scripts/check-repository.sh`
-- Expected result: `repository scaffold checks passed`
-- Change-specific review: confirm all maintained documentation uses `ReimuFoodTier`, contains none of the removed four-range mapping or literal one-food-item-per-task rule, keeps the six GPT prototype files outside the repository, keeps `actions.json` labeled as a project-internal specification, and keeps the incident chain marked design-only.
+- Validation commands: `./scripts/check-repository.sh` and `python3 -m unittest tools.test_build_reimu_animations -v` (the integration tests need the `sprite-harness` CLI via PATH or `SPRITE_HARNESS_BIN`; they skip loudly when it is absent).
+- Expected result: `repository scaffold checks passed`; all pipeline tests pass (14 tests as of 2026-09-03).
+- Rebuild check: `python3 tools/build_reimu_animations.py` with the same sources and harness version must be a no-op diff (published output is byte-identical).
+- Change-specific review: confirm all maintained documentation uses `ReimuFoodTier`, contains none of the removed four-range mapping or literal one-food-item-per-task rule, keeps the six GPT prototype files outside the repository, keeps `actions.json` labeled as a project-internal specification, keeps the incident chain marked design-only, keeps `base.png` byte-identical to its committed state after any rebuild, and keeps `app/task-state-mapping.js` as the only task-count policy.
 - Uncommitted or unpushed work: check `git status` and GitHub before starting; this section must be updated if synchronization fails.
-- Latest completed change: committed the approved Eating Set v1 reference sheet, derived the six static runtime sprites, and implemented the static state-switching preview app with debug task provider.
+- Latest completed change: integrated Sprite Harness as the production/validation pipeline for the Eating Set (identity baseline), published per-state runtime manifests and validated frames, upgraded the preview app to `frames[]` playback with reduced motion and explicit fallback, and documented the integration contract.
 
 ## 9. Required update procedure
 
@@ -153,6 +162,17 @@ For every repository-changing task:
 Never mark a task complete while material repository changes exist only in a local working tree.
 
 ## 10. Handoff log
+
+### 2026-09-03 — Sprite Harness integration and identity baseline
+
+- First production use of Sprite Harness (`lyw-ops/Spirite-harness`, 0.7.0) as the animation build/validation tool, strictly through the public `sprite-harness` CLI/JSON contract; no harness core changes and no Reimu-specific harness logic were needed.
+- Added the consumer animation spec `pets/reimu/animations/eating/animation-set.json` (shared defaults + per-state overrides, expanded deterministically into one legal Animation Plan per state — no six copy-pasted plans) and the build entry point `tools/build_reimu_animations.py` (`plan → render → validate --write-qa → preview → contact-sheet → report`, exit codes checked, `--json` everywhere, validation failure blocks publication, staged fail-safe publish, source SHA verified unchanged, harness version + plan digest recorded).
+- Published per-state runtime artifacts `assets/reimu/eating/<state>/animation.json` + `frames/frame_000.png` for all six states; `base.png` remains immutable and repeated builds are byte-identical.
+- Decision: the baseline is an **identity hold** (one validated frame per state). A restrained whole-sprite breathing experiment (±2 px translate_y) validated cleanly but measurement showed the tatami ground line moving by the full amplitude with the table and food — whole-scene bobbing reads worse than a stable still at 160 px. Local eating motion requires explicit layered source assets (Animation Plan v2); recorded in `docs/sprite-harness-integration.md` together with the future Codex-atlas boundary (food tiers are not Codex rows).
+- Upgraded the preview app: strict manifest loader (`app/animations.js`), token-guarded single frame player with per-frame durations/loop, reduced-motion support (OS preference + QA toggle), instant state switching without flicker, and explicit logged/visible fallback to `base.png` on missing or malformed manifests. `app/task-state-mapping.js` is untouched.
+- Extended `scripts/check-repository.sh` (manifest integrity: contiguous numbering, per-frame digests, reduced-motion frame, source binding, 596×596 RGBA frames) and added `tools/test_build_reimu_animations.py` (14 tests: spec composition, harness discovery errors, manifest determinism, publish rollback, end-to-end + determinism + validation-failure integration tests against the real CLI).
+- Verified in-browser: all six states load as `animated`, task-count edge values map correctly, playback cycles frame order exactly and stops on state switch, non-loop states hold the last frame, reduced motion holds the declared still, missing/malformed manifests fall back with explicit status.
+- Next owner: get maintainer review of the identity baseline, then produce explicit layered Reimu PNGs and move the eating states to Animation Plan v2 local motion; do not fake layers from the flattened sheet and do not invoke harness M4 generation without explicit authorization.
 
 ### 2026-09-02 — Eating Set v1 static prototype
 

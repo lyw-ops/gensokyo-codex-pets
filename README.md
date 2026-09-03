@@ -18,7 +18,9 @@ The character art will use an original, manually controlled chibi system. Recogn
 
 ## Current status
 
-**Static visual prototype stage.** The maintainer-approved **Eating Set v1** concept sheet is committed under `docs/reference/reimu/eating_set_v1/`, its six derived runtime sprites live under `assets/reimu/eating/`, and a dependency-free static preview app under `app/` switches states from a debug task count (see `app/README.md`). There is still no animation, no installable Codex pet package, and no real workload integration; the preview's task count is a manual debug input.
+**Sprite Harness pipeline stage (identity baseline).** The maintainer-approved **Eating Set v1** concept sheet is committed under `docs/reference/reimu/eating_set_v1/`, its six derived runtime sprites live under `assets/reimu/eating/`, and the [Sprite Harness](https://github.com/lyw-ops/Spirite-harness) production pipeline is in place: `tools/build_reimu_animations.py` expands the consumer animation spec into validated Animation Plans, drives the public `sprite-harness` CLI (plan → render → validate → preview → contact sheet → report), and publishes a runtime `animation.json` manifest plus validated frames next to each state's immutable `base.png`. The preview app under `app/` plays each state's ordered `frames[]` with reduced-motion support and explicit static fallback (see `app/README.md`).
+
+The published animation content is deliberately an **identity baseline** (one validated frame per state): the flattened sprites bake the character, table, food, and tatami into one image, so any whole-sprite motion moves the ground line with the character. Local eating motion is gated on explicit layered source assets; see [the integration contract](docs/sprite-harness-integration.md). There is still no installable Codex pet package and no real workload integration; the preview's task count is a manual debug input.
 
 The current Codex desktop app supports a local v2 pet atlas with 8 columns, 11 rows, 192×208 pixel cells, and a 1536×2288 final image. The public web-upload documentation currently describes a separate 1536×1872 sheet. See [the format research](docs/codex-pet-format.md) before making assets.
 
@@ -35,16 +37,17 @@ A fixed sprite sheet must not be presented as live workload integration. Current
 ## Repository map
 
 ```text
-app/                  Static state-switching preview app (debug task provider)
-assets/reimu/eating/  Eating Set v1 runtime sprites (one state directory each)
+app/                  State-switching preview app with frames[] playback (debug task provider)
+assets/reimu/eating/  Eating Set v1 runtime states: base.png + animation.json + frames/
 docs/                 Project vision, format research, design, references, and roadmap
 docs/reference/       Approved concept/reference art (never loaded at runtime)
-pets/reimu/           Reimu-specific design, future Codex atlas sprites, and metadata examples
-scripts/              Deterministic project checks and future build scripts
-tools/                Asset derivation and future compatibility/workload tooling
+pets/reimu/           Reimu-specific design, animation specs, future Codex atlas sprites, metadata
+scripts/              Deterministic project checks
+tools/                Asset derivation and the Sprite Harness build entry point
+build/                Disposable Sprite Harness build output (gitignored)
 ```
 
-Start with [the project vision](docs/vision.md), [Reimu's design brief](docs/reimu-design.md), and [the workload/food model](docs/workload-food-system.md).
+Start with [the project vision](docs/vision.md), [Reimu's design brief](docs/reimu-design.md), [the workload/food model](docs/workload-food-system.md), and [the Sprite Harness integration contract](docs/sprite-harness-integration.md).
 
 ## GPT handoff
 

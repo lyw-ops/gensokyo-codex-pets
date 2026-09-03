@@ -1,6 +1,14 @@
 # Reimu eating-set runtime sprites (v1)
 
-Six static runtime sprites, one directory per eating state, derived from the approved **Eating Set v1** concept sheet in `docs/reference/reimu/eating_set_v1/`.
+Six runtime state directories, one per eating state, derived from the approved **Eating Set v1** concept sheet in `docs/reference/reimu/eating_set_v1/`.
+
+Each state directory contains:
+
+- `base.png` — the immutable static source sprite (never overwritten);
+- `animation.json` — the consumer runtime manifest published by the Sprite Harness pipeline (`tools/build_reimu_animations.py`), recording frame order, durations, loop, the reduced-motion frame, the source digest, and build provenance;
+- `frames/frame_000.png …` — harness-validated animation frames referenced by the manifest.
+
+The current published animation is the deliberate **identity baseline**: one validated frame per state, byte-identical to `base.png`. The flattened sources cannot support local motion without moving the table/tatami ground line; see [`docs/sprite-harness-integration.md`](../../../docs/sprite-harness-integration.md). Runtime consumers read `animation.json` + `frames/`; `base.png` doubles as the explicit static fallback when a manifest is missing or broken.
 
 | State | Task count | Composition |
 | --- | --- | --- |
@@ -20,4 +28,10 @@ Six static runtime sprites, one directory per eating state, derived from the app
 
 ## Provenance and regeneration
 
-Derived mechanically (alpha-mask segmentation, no repainting) from `docs/reference/reimu/eating_set_v1/eating-set-v1-sheet.png` by `tools/split_eating_sheet.py`. Never edit `base.png` by hand-painting; regenerate from an updated approved sheet instead. Future animation frames belong next to `base.png` in the same state directory.
+`base.png` is derived mechanically (alpha-mask segmentation, no repainting) from `docs/reference/reimu/eating_set_v1/eating-set-v1-sheet.png` by `tools/split_eating_sheet.py`. Never edit `base.png` by hand-painting; regenerate from an updated approved sheet instead.
+
+`animation.json` and `frames/` are published only by `tools/build_reimu_animations.py` after `sprite-harness validate` passes; never hand-edit them. Rebuild with:
+
+```bash
+python3 tools/build_reimu_animations.py
+```

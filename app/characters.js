@@ -1,7 +1,24 @@
 // Character registry: Character -> StateSet -> State -> frames.
-// `frames` is an ordered list so states can gain animation frames later
-// without changing this shape; every state currently holds a single static
-// base sprite. Paths are relative to app/index.html.
+// `frames` is an ordered list. Every state starts on its immutable static
+// base sprite; animations.js upgrades `frames`/`durationsMs`/`loop`/
+// `reducedMotionFrame` in place when a validated runtime manifest
+// (animation.json, published by tools/build_reimu_animations.py) is present.
+// A missing or broken manifest leaves the state on this explicit static
+// fallback. Paths are relative to app/index.html.
+
+function eatingState(assetDir) {
+  const base = `${assetDir}/base.png`;
+  return {
+    assetDir,
+    base,
+    manifest: `${assetDir}/animation.json`,
+    frames: [base],
+    durationsMs: [0],
+    loop: false,
+    reducedMotionFrame: base,
+    animation: { status: 'static-base', detail: 'manifest not loaded' },
+  };
+}
 
 export const characters = {
   reimu: {
@@ -10,12 +27,12 @@ export const characters = {
       eating: {
         defaultState: 'idle',
         states: {
-          idle:   { frames: ['../assets/reimu/eating/idle/base.png'] },
-          task_1: { frames: ['../assets/reimu/eating/task_1/base.png'] },
-          task_2: { frames: ['../assets/reimu/eating/task_2/base.png'] },
-          task_3: { frames: ['../assets/reimu/eating/task_3/base.png'] },
-          task_4: { frames: ['../assets/reimu/eating/task_4/base.png'] },
-          task_5: { frames: ['../assets/reimu/eating/task_5/base.png'] },
+          idle:   eatingState('../assets/reimu/eating/idle'),
+          task_1: eatingState('../assets/reimu/eating/task_1'),
+          task_2: eatingState('../assets/reimu/eating/task_2'),
+          task_3: eatingState('../assets/reimu/eating/task_3'),
+          task_4: eatingState('../assets/reimu/eating/task_4'),
+          task_5: eatingState('../assets/reimu/eating/task_5'),
         },
       },
     },

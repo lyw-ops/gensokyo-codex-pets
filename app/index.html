@@ -55,9 +55,10 @@
 </style>
 </head>
 <body>
-  <h1>Reimu — Eating Set v1 (static preview)</h1>
+  <h1>Reimu — Eating Set v1 preview</h1>
   <div id="stage" data-bg="checker"><img id="sprite" alt="Reimu eating-state sprite"></div>
   <div id="state-label"></div>
+  <div id="anim-label" class="hint"></div>
   <div class="row">
     <span>tasks:</span>
     <span id="debug-buttons" class="row"></span>
@@ -73,6 +74,10 @@
     <button data-bg="checker" class="active">checker</button>
     <button data-bg="desktop">desktop</button>
     <button data-bg="dark">dark</button>
+    <span>motion:</span>
+    <button data-motion="auto" class="active">auto (OS)</button>
+    <button data-motion="full">full</button>
+    <button data-motion="reduced">reduced</button>
   </div>
   <div class="hint">keys 0–9 set the task count, ↑/↓ step it, ?tasks=N presets it</div>
   <script type="module" src="./main.js"></script>

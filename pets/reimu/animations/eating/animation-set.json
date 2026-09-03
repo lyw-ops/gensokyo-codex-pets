@@ -1,0 +1,45 @@
+{
+  "set_version": 1,
+  "character": "reimu",
+  "state_set": "eating",
+  "consumer": "gensokyo-codex-pets",
+  "notes": [
+    "Consumer-side animation specification for the Reimu Eating Set v1.",
+    "This file is NOT a Sprite Harness Animation Plan; tools/build_reimu_animations.py deterministically expands it into one legal plan per state and drives the public sprite-harness CLI.",
+    "The current sources are flattened single-image sprites (base.png) that include the low table, food, and tatami. Whole-sprite motion moves the ground line and the food together with the character, so this baseline is deliberately an identity hold: one validated frame per state.",
+    "Local eating motion (breathing, head bob, chewing, blink) requires explicit layered source assets and an Animation Plan v2; see docs/sprite-harness-integration.md."
+  ],
+  "source_root": "assets/reimu/eating",
+  "publish_root": "assets/reimu/eating",
+  "source_file": "base.png",
+  "animation_id_prefix": "reimu_eating",
+  "expected_validation_warnings": ["ZERO_MOTION"],
+  "defaults": {
+    "plan_version": 1,
+    "playback": {
+      "fps": 8,
+      "frame_count": 1,
+      "loop": true
+    },
+    "anchor": {
+      "type": "bottom_center"
+    },
+    "constraints": {
+      "max_displacement_px": 1,
+      "max_frame_delta_px": 1
+    },
+    "reduced_motion": {
+      "mode": "hold_first_frame"
+    },
+    "tracks": [],
+    "events": []
+  },
+  "states": {
+    "idle": {},
+    "task_1": {},
+    "task_2": {},
+    "task_3": {},
+    "task_4": {},
+    "task_5": {}
+  }
+}

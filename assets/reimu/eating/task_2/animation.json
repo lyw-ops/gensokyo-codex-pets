@@ -1,0 +1,34 @@
+{
+  "animation_id": "reimu_eating_task_2",
+  "character": "reimu",
+  "frames": [
+    {
+      "duration_ms": 125,
+      "file": "frames/frame_000.png",
+      "sha256": "d3139f4ecc428235b4bfd3d227be760cb151d7d3da126f78cfa0923b5ec7ee4d"
+    }
+  ],
+  "manifest_version": 1,
+  "playback": {
+    "fps": 8.0,
+    "loop": true
+  },
+  "provenance": {
+    "builder": "tools/build_reimu_animations.py",
+    "harness_version": "0.7.0",
+    "pipeline": "sprite-harness",
+    "plan_digest": "sha256:44b79f8eea1a47dd852473b5b289585e0877580dcc969ae52552a18e7bf6e0b3",
+    "render_mode": "full",
+    "spec": "pets/reimu/animations/eating/animation-set.json"
+  },
+  "reduced_motion": {
+    "frame": "frames/frame_000.png",
+    "mode": "hold_first_frame"
+  },
+  "source": {
+    "file": "base.png",
+    "sha256": "d3139f4ecc428235b4bfd3d227be760cb151d7d3da126f78cfa0923b5ec7ee4d"
+  },
+  "state": "task_2",
+  "state_set": "eating"
+}
