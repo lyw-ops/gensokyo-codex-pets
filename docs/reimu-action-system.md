@@ -32,6 +32,15 @@ at a safe loop boundary without restarting the FSM node. Hearts, sparkles, sweat
 and steam in the concept sheet are optional mood cues, not mandatory detached sprite
 effects; prefer face, pose, timing, and meal richness at actual pet size.
 
+Current native coverage is deliberately narrower than this complete design. Tier 2 has
+the approved 16-frame exact chew loop. Tier 3 has a separate native identity backed by
+the byte-exact existing Eating Set v1 still; the user approved its native size and pose
+on 2026-09-20, so production-identity packaging is allowed. Because no reviewed
+multi-frame or layered tier-3 source exists, it is still a static hold and is not an
+animation-completion claim. Tiers 1, 4, and 5 remain explicit standing fallbacks. A
+damaged optional tier package degrades only that tier, and no tier may borrow another
+tier's artwork.
+
 Eating an onigiri also remains a separate idle behavior:
 
 - `idle_onigiri` is a bounded autonomous one-shot available only while the observed
@@ -76,6 +85,40 @@ idle                     -> idle base + eligible autonomous actions, including i
 This section freezes behavior semantics only. `idle_onigiri` and the independent
 caught/landing art still require authored assets, Harness validation, native integration,
 normal-size visual QA, and explicit approval before they can be reported as production.
+
+## Current implementation — 2026-09-19: native tier-2 vertical slice
+
+The native observer-to-artwork path now preserves `WorkStatus.active` through
+`PetBehavior.setWorkStatus`. When the observed base is `working` and the exact count is
+two, the selector uses the explicit `work_eating_task_2` runtime identity and the approved
+16-frame `task_2-chew-v9` package at 10 fps. This identity is separate from the generic
+manual/idle eating clip; no filename inference is used.
+
+This is deliberately partial coverage:
+
+- `ReimuFoodTier` remains `min(activeTaskCount, 5)`, while the uncapped observed count
+  remains in `WorkStatus` and the status card. Animation never writes task truth.
+- tiers 1, 3, 4, and 5 use named standing fallbacks. Counts above five cap at the same
+  tier-5 fallback. They never select tier-2 artwork.
+- ordinary count changes commit at the current visual loop boundary. Leaving `working`
+  and the existing higher-priority failure, waiting, click, drag, and pause paths preempt
+  immediately. Recovery resolves the latest observed count rather than a stale tier.
+- reduced motion holds task_2 frame 0. A missing base/frame or identity/digest mismatch
+  degrades only tier 2 to standing and leaves the existing clips available.
+
+The source frames and provenance files are unchanged. The user approved the current
+native tier-2 loop preview on 2026-09-19. That closes the visual gate for this direct-switch
+vertical slice only; installation remains open. Tier 1, 3, 4, 5, `idle_onigiri`,
+`drag_float`, and `drag_land` remain unimplemented artwork/runtime deliveries except for
+their previously documented honest fallbacks.
+
+**Transition backlog.** A later, separately gated delivery may add authored transitions
+for standing/fallback → task_2 entry, task_2 → another base exit, cross-tier composition
+changes once those tiers exist, and recovery from a transient action into the latest work
+tier. These transitions must not delay failure, needs-input, drag, click, or pause
+preemption; recovery must still read the newest observed count. The current direct switch
+remains the approved tier-2 baseline until replacement transitions pass their own source,
+technical, native visual, and consumer gates.
 
 ## Current implementation — 2026-09-16: declarative action registry and the chewing pause
 

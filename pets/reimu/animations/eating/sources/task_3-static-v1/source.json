@@ -1,0 +1,46 @@
+{
+  "approval": {
+    "runtime_scope": "native size, pose, static hold, and demonstrated switching approved 2026-09-20; no multi-frame animation claim",
+    "source_image": "pre-existing Eating Set v1 task_3 asset"
+  },
+  "base": {
+    "file": "base.png",
+    "sha256": "45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff"
+  },
+  "canvas": {
+    "height": 596,
+    "width": 596
+  },
+  "character": "reimu",
+  "exact_frame_source_version": 1,
+  "frames": [
+    {
+      "duration_ms": 125,
+      "file": "frames/frame_000.png",
+      "sha256": "45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff"
+    }
+  ],
+  "motion": {
+    "description": "static hold; no multi-frame tier-3 artwork exists",
+    "static": [
+      "character",
+      "bowl",
+      "table food",
+      "table",
+      "tatami",
+      "steam and expression marks"
+    ]
+  },
+  "playback": {
+    "fps": 8,
+    "frame_count": 1,
+    "loop": true
+  },
+  "provenance": {
+    "consumer_manifest": "assets/reimu/eating/task_3/animation.json",
+    "consumer_source_sha256": "45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff",
+    "pixel_policy": "byte-exact reuse of the existing 596x596 transparent task_3 image; no resampling, repaint, segmentation or generated frames"
+  },
+  "state": "task_3",
+  "state_set": "eating"
+}

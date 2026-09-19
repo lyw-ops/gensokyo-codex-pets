@@ -462,6 +462,8 @@
       "returnTo": null,
       "codexRow": "running",
       "extendedRuntime": "working base node; continuous tier-composed eating loop; task metadata stays in the external card and no task slip or typing is required",
+      "runtimeCoverage": "native exact-frame animation implemented for food tier 2; tier 3 has a separate byte-exact one-frame static native pose visually approved on 2026-09-20 and eligible for production-identity packaging, but it does not count as completed animation; tiers 1, 4, and 5 use explicit standing fallback",
+      "transitionCoverage": "future separately gated work: authored entry, exit, cross-tier, and post-transient recovery transitions; high-priority preemption must remain immediate and recovery must use the latest observed count",
       "props": ["onigiri", "tea cup", "tier meal composition"],
       "expression": "tier-dependent: tearful at 1, settling at 2, content at 3, delighted at 4, laughing-crying at 5",
       "status": "specified"

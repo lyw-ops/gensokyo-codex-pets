@@ -1,5 +1,89 @@
 # GPT project handoff / GPT 项目交接
 
+## 2026-09-20 task_2/task_3 原生工作餐垂直切片发布
+
+本提交把已分别通过技术与视觉门的task_2动态循环、task_3静态姿态及其独立失败回退一起
+发布到Consumer `main`。工作状态只读取observer的真实`activeTaskCount`；普通换档在当前
+安全循环边界发生，高优先状态与拖动立即抢占，恢复使用最新数量。task_3源包的审批说明已
+更新为2026-09-20已批准，当前manifest SHA-256为
+`17909602578f8c961480f9d7aaf0fce19b732c859bb107dfdc05a28a197540bc`。
+
+发布前仓库门禁、差异空白检查、task_2/task_3各四项原生加载/隔离回退检查通过；此前同一
+Swift源的172项行为、34项原生AppKit、125项工具、14项bridge、31项状态、表情与站姿检查
+均已通过。当前Command Line Tools的编译器/SDK补丁版本不匹配，故本轮不能补做全新源码
+编译；已批准正式ZIP使用已审阅的同一可执行文件与美术资源，更新审批manifest和正式身份后
+重新签名并通过全新解包验证。没有安装应用。下一步是独立设计工作餐进入/离开/跨档过渡，
+不能把task_3静帧写成多帧动画完成。
+
+## 2026-09-20 task_3 原生静态切片已获视觉批准（正式包已生成，未安装）
+
+用户在查看`build/reimu-tier3-runtime-v1/runtime-preview/review-sheet.png`与
+`runtime-review.gif`后回复“可以”。该批准绑定现有task_3原图SHA-256
+`45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff`以及已审阅的
+原生大小、姿态、静态保持和抢占/恢复切换。`build.py --work-tier-3`不再强制
+`--preview`，但仍继续严格校验manifest与图像摘要。正式身份1.10/build12包位于
+Harness `build/reimu-tier3-runtime-v1/release/灵梦桌宠-1.10-build12.zip`，SHA-256为
+`6cfab44b193e2d16259d523dddcfc53b20104a6c7dafd8d95e9e3d1d958823e8`。全新临时解包通过
+严格深层签名与原生资源检查；没有覆盖已安装应用。
+
+当前Command Line Tools的Swift编译器与SDK补丁版本不匹配，因此本轮正式身份包复用已审阅
+预览的完全相同可执行文件和美术资源，只把tier-3 manifest的审批说明更新为已批准，修改
+四个Info.plist身份字段并更新manifest pin后重新签名。当前生产manifest SHA-256为
+`17909602578f8c961480f9d7aaf0fce19b732c859bb107dfdc05a28a197540bc`；生产模式`build.py`
+已通过全部资源门并到达编译步骤。修复工具链后仍应补做一次全新源码编译回执。
+
+这不批准尚未制作的task_3多帧动画或跨档过渡，也不是commit、push、tag或release授权。
+
+## 2026-09-19 task_3 原生静态垂直切片已完成技术预览（等待视觉确认）
+
+在下方已验证的task_2垂直切片基础上，`WorkStatus.state == "working"`且真实
+`activeTaskCount == 3`现在选择独立运行时身份`work_eating_task_3`。本轮没有新增、
+生成或分割角色美术；只按原字节复用Eating Set v1现有`task_3`透明596×596图，
+SHA-256为`45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff`。
+由于没有已审核的多帧或分层task_3源，运行时诚实保持这一帧，不能声称task_3动画已完成。
+
+task_2→task_3仍等到当前1.6秒咀嚼循环边界；task_3本身是静态安全帧，因此离开
+task_3无需人为等待7秒站姿循环。failure、needs_input、点击、拖动、暂停等高优先路径
+继续立即抢占；恢复读取最新数量。task_3包缺失、缺base、帧损坏或manifest/摘要不匹配
+只把tier 3降级为站姿，不影响task_2、站姿、手动吃饭或托腮。
+
+隔离预览为Harness `build/reimu-tier3-runtime-v1/灵梦桌宠预览.app`，1.10/build12；
+`runtime-preview/review-sheet.png`和`runtime-review.gif`展示count=3静态保持、
+`needs_input`立即抢占及最新count=2恢复。8次task_3原生捕获SHA完全相同。
+172项Swift行为、34项原生AppKit、125项工具、14项bridge、31项状态、
+task_2/task_3各4项加载回退、3项表情、5项站姿及仓库门禁通过。
+
+当前边界：实现和技术门已通过；task_3原生大小/姿态仍等待用户看图确认，所以
+`build.py --work-tier-3`强制`--preview`，未开放正式构建。没有安装、commit、push、tag或release。
+完整task_3动作循环仍需显式分层或已审核多帧源；不得把本静态切片记作动画完成。
+
+## 2026-09-19 task_2 已接入原生 working 垂直切片（当前视觉已确认，未安装）
+
+当 `WorkStatus.state == "working"` 且 observer 汇总出的真实 `activeTaskCount == 2`
+时，原生行为层现在选择独立运行时身份 `work_eating_task_2`，按10 fps 循环已入库的
+16帧 `task_2-chew-v9` 精确序列。`main.swift` 不再丢弃 `WorkStatus.active`；动画只读该值，
+档位仍为 `min(activeTaskCount, 5)`，不会写回observer或任务状态。档位1、3、4、5及5+
+依然显式降级为已有站姿，不得选择或声称已完成task_2。
+
+普通数量变化等到当前站姿/1.6秒咀嚼循环边界换档；离开working、failure、
+needs_input、点击、拖动和暂停仍立即抢占。抢占结束时使用最新数量，不恢复过期task_2。
+reduced motion固定在manifest声明的frame 0。缺帧、缺base或manifest/摘要不匹配只会
+把tier 2降级为站姿，不会禁用其他原生动作。
+
+技术预览位于Harness `build/reimu-tier2-runtime-v1/runtime-preview/`，使用隔离的本地快照，
+展示进入、循环、`needs_input` 立即抢占与最新count=2恢复；没有连接真实provider。
+该预览已完成程序和原生技术验证；用户随后反馈“我觉得OK”，因此
+**当前task_2循环的原生大小、播放与抢占/恢复预览视为已确认**。这不批准尚未制作的
+过渡素材，也不表示已安装。
+
+后续显式记录一项过渡动画债务：补齐站姿/fallback进入task_2、离开task_2、未来档位切换，
+以及高优先动作结束后回到最新working档位的姿态衔接。它们需要独立设计、美术、技术和视觉门；
+不得让failure、needs_input、拖动、点击或暂停为等过渡而延迟抢占，恢复仍必须读取最新任务数。
+当前直接切换作为已确认的tier 2基线保留，不因这项未来改进而回退本轮视觉门。
+
+本轮没有新美术、没有修改精确来源帧，没有安装/替换正式App，没有commit或push。
+`idle_onigiri`、`drag_float`、`drag_land` 以及工作餐tier 1/3/4/5的完成状态不变。
+
 ## 2026-09-19 工作吃饭六档、挂机饭团与独立抓取动作已写入设计
 
 用户重新确认最初核心设定：工作时灵梦持续吃饭，`ReimuFoodTier = min(activeTaskCount, 5)`

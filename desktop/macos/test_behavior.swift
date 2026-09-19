@@ -26,10 +26,10 @@ check("four rapid clicks escalate once") { b.presentation(now:0.31).node == "rea
 check("annoyed selects authored art for the full reaction hold") { b.presentation(now:0.31).usesAnnoyedArt && b.presentation(now:1.49).usesAnnoyedArt }
 check("reduced motion suppresses annoyed art but keeps its caption") { let p=b.presentation(now:1.49,motionAllowed:false); return !p.usesAnnoyedArt && p.frame == 0 && p.caption == "让我吃完嘛" }
 for t in [0.4,0.5,0.6,1.0,1.4] { b.click(now:t) }
-check("click spam does not extend or queue locked reactions") { b.presentation(now:1.6).node == "work_standing" }
+check("click spam does not extend or queue locked reactions") { b.presentation(now:1.6).node == "work_fallback_tier_0" }
 check("annoyed art is cleared on return to work") { !b.presentation(now:1.6).usesAnnoyedArt }
 b.click(now:2)
-check("annoyed reaction has a cooldown") { b.presentation(now:2.1).node == "work_standing" }
+check("annoyed reaction has a cooldown") { b.presentation(now:2.1).node == "work_fallback_tier_0" }
 b.click(now:3.6)
 check("clicks recover after cooldown") { b.presentation(now:3.61).node == "react_notice" }
 
@@ -64,13 +64,96 @@ check("reaction preserves unknown coverage on return") { f.presentation(now:103)
 
 let g = PetBehavior(now:0)
 g.setBase("working",now:0)
-check("working uses standing without changing observed base") { g.presentation(now:19.9).node == "work_standing" && g.base == "working" }
+check("working uses honest tier-0 fallback without changing observed base") { g.presentation(now:19.9).node == "work_fallback_tier_0" && g.base == "working" }
 check("long working periods never start an automatic meal") { g.presentation(now:200).artwork == .standing && g.action == nil }
 g.setBase("needs_input",now:201)
 check("waiting remains standing and never triggers autonomous eating") { let p=g.presentation(now:400); return p.node == "needs_input" && p.artwork == .standing && !p.wantsAnimation }
 
+let task2 = PetBehavior(now:0)
+task2.setWorkStatus("working",activeTaskCount:2,now:0)
+check("working plus two tasks enters the explicit task_2 runtime identity") {
+    let p=task2.presentation(now:0); return p.node == "work_eating_task_2" && p.artwork == .workEatingTier2 && p.frame == 0
+}
+check("task_2 loops continuously without mutating observed task truth") {
+    let frames=[0.0,0.1,1.5,1.6,3.2].map{task2.presentation(now:$0).frame}
+    return frames == [0,1,15,0,0] && task2.base == "working" && task2.activeTaskCount == 2
+}
+check("reduced motion holds the declared task_2 representative frame") {
+    let p=task2.presentation(now:0.9,motionAllowed:false)
+    return p.artwork == .workEatingTier2 && p.frame == 0 && !p.wantsAnimation
+}
+check("missing task_2 runtime asset degrades explicitly to standing") {
+    let p=task2.presentation(now:1.0,availableWorkTiers:[])
+    return p.artwork == .standing && p.node == "work_fallback_tier_2"
+}
+
+let task3 = PetBehavior(now:0)
+task3.setWorkStatus("working",activeTaskCount:3,now:0)
+check("working plus three tasks enters the explicit task_3 runtime identity") {
+    let p=task3.presentation(now:0,availableWorkTiers:[2,3])
+    return p.node == "work_eating_task_3" && p.artwork == .workEatingTier3 && p.frame == 0 && !p.wantsAnimation
+}
+check("task_3 remains an honest static hold without mutating observed task truth") {
+    let outputs=[0.0,0.125,1.0,10.0].map{task3.presentation(now:$0,availableWorkTiers:[2,3])}
+    return outputs.allSatisfy{$0.frame == 0 && !$0.wantsAnimation} && task3.base == "working" && task3.activeTaskCount == 3
+}
+check("missing task_3 runtime asset degrades explicitly to standing") {
+    let p=task3.presentation(now:1.0,availableWorkTiers:[2])
+    return p.artwork == .standing && p.node == "work_fallback_tier_3"
+}
+
+let enterTier2=PetBehavior(now:0)
+enterTier2.setWorkStatus("working",activeTaskCount:1,now:0)
+enterTier2.setWorkStatus("working",activeTaskCount:2,now:1)
+check("one to two tasks waits for the current standing loop boundary") {
+    enterTier2.presentation(now:6.99).artwork == .standing &&
+    enterTier2.presentation(now:7.0).artwork == .workEatingTier2
+}
+let leaveTier2=PetBehavior(now:0)
+leaveTier2.setWorkStatus("working",activeTaskCount:2,now:0)
+leaveTier2.setWorkStatus("working",activeTaskCount:3,now:0.2)
+check("two to three tasks finishes the current chew loop before selecting task_3") {
+    leaveTier2.presentation(now:1.59).artwork == .workEatingTier2 &&
+    leaveTier2.presentation(now:1.6,availableWorkTiers:[2,3]).artwork == .workEatingTier3
+}
+let leaveTier3=PetBehavior(now:0)
+leaveTier3.setWorkStatus("working",activeTaskCount:3,now:0)
+leaveTier3.setWorkStatus("working",activeTaskCount:2,now:0.2)
+check("three to two tasks can leave the static hold at once") {
+    let p=leaveTier3.presentation(now:0.2,availableWorkTiers:[2,3]); return p.artwork == .workEatingTier2 && p.frame == 0
+}
+let leaveWorking=PetBehavior(now:0)
+leaveWorking.setWorkStatus("working",activeTaskCount:2,now:0)
+leaveWorking.setWorkStatus("idle",activeTaskCount:0,now:0.2)
+check("two to zero tasks leaves working immediately with no stale task_2 frame") {
+    let p=leaveWorking.presentation(now:0.21); return p.artwork == .standing && p.node == "idle_relaxed"
+}
+for tier in [1,4,5] {
+    let m=PetBehavior(now:0);m.setWorkStatus("working",activeTaskCount:tier,now:0)
+    check("unfinished tier \(tier) never maps to task_2") {
+        let p=m.presentation(now:0.5);return p.artwork == .standing && p.node == "work_fallback_tier_\(tier)"
+    }
+}
+let capped=PetBehavior(now:0);capped.setWorkStatus("working",activeTaskCount:9,now:0)
+check("five-plus tasks stays capped at honest tier-5 fallback") { capped.displayedFoodTier == 5 && capped.presentation(now:1).node == "work_fallback_tier_5" }
+
+let clickTier=PetBehavior(now:0);clickTier.setWorkStatus("working",activeTaskCount:2,now:0);clickTier.click(now:0.2)
+check("click reaction immediately preempts task_2") { clickTier.presentation(now:0.21).artwork == .standing && clickTier.presentation(now:0.21).node == "react_notice" }
+clickTier.setWorkStatus("working",activeTaskCount:3,now:0.3)
+check("click recovery reads the newest count instead of restoring stale task_2") { clickTier.presentation(now:0.8,availableWorkTiers:[2,3]).artwork == .workEatingTier3 }
+let dragTier=PetBehavior(now:0);dragTier.setWorkStatus("working",activeTaskCount:2,now:0);dragTier.beginDrag(now:0.2)
+check("drag immediately preempts task_2") { dragTier.presentation(now:0.21).node == "drag_float" && dragTier.presentation(now:0.21).artwork == .standing }
+dragTier.setWorkStatus("working",activeTaskCount:4,now:0.3);dragTier.endDrag(now:0.4)
+check("drag recovery uses the newest tier and never restores task_2") { dragTier.presentation(now:0.71).node == "work_fallback_tier_4" }
+for state in ["failed","needs_input"] {
+    let m=PetBehavior(now:0);m.setWorkStatus("working",activeTaskCount:2,now:0);m.setWorkStatus(state,activeTaskCount:state == "failed" ? 0 : 1,now:0.2)
+    check("\(state) immediately preempts task_2") { let p=m.presentation(now:0.21);return p.artwork == .standing && p.node == state }
+}
+let pausedTier=PetBehavior(now:0);pausedTier.setWorkStatus("working",activeTaskCount:2,now:0)
+check("pause stops the chew loop immediately at its safe still") { let p=pausedTier.presentation(now:0.73,motionAllowed:false);return p.artwork == .workEatingTier2 && p.frame == 0 && !p.wantsAnimation }
+
 let h = working(); h.click(now:1); h.cancelTransient(now:1.1)
-check("pausing cancels reactions without a deferred queue") { h.presentation(now:1.2).node == "work_standing" }
+check("pausing cancels reactions without a deferred queue") { h.presentation(now:1.2).node == "work_fallback_tier_0" }
 let i = working(); i.beginDrag(now:0); i.endDrag(now:0.1); i.click(now:0.2); i.click(now:0.41)
 check("clicks discarded during landing do not count toward the next burst") { i.presentation(now:0.42).node == "react_notice" }
 let j = working(); for t in [0.0,0.1,0.2,0.3] { j.click(now:t) }; j.setBase("failed",now:0.4)
@@ -96,7 +179,7 @@ check("pause cancels meal without replaying it later") { pausedMeal.presentation
 let dragIdle = PetBehavior(now:0); dragIdle.setBase("idle",now:0); dragIdle.beginDrag(now:1)
 check("standing drag holds artwork without a made-up flight frame") { let p=dragIdle.presentation(now:1.1); return p.artwork == .standing && p.frame == 0 }
 dragIdle.setBase("working",now:1.2); dragIdle.endDrag(now:1.3)
-check("standing landing resolves the latest working state") { let p=dragIdle.presentation(now:1.7); return p.artwork == .standing && p.node == "work_standing" }
+check("standing landing resolves the latest working state") { let p=dragIdle.presentation(now:1.7); return p.artwork == .standing && p.node == "work_fallback_tier_0" }
 // Deterministic clock/random injection stays inside isolated model tests.
 func quiet() -> PetBehavior {
     let m = PetBehavior(now:0,randomUnit:{0}); m.setBase("idle",now:0); return m
@@ -277,7 +360,7 @@ check("an interrupted meal never plays its continuation") {
 let left = chained(); _=left.presentation(now:60); _=left.presentation(now:68)
 left.setBase("working",now:68.5)
 check("leaving idle cancels the continuation as well as the meal") {
-    left.presentation(now:68.6).node == "work_standing" && left.action == nil
+    left.presentation(now:68.6).node == "work_fallback_tier_0" && left.action == nil
 }
 let gated = chained(); _=gated.presentation(now:60); _=gated.presentation(now:68)
 _=gated.presentation(now:68.5,motionAllowed:false)

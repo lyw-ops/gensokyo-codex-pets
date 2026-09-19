@@ -10,7 +10,7 @@ from observer import normalize, reduce_record, summarize
 
 
 def main(binary):
-    cases = [[], ['SessionStart'], ['UserPromptSubmit'], ['PermissionRequest'],
+    cases = [[], ['SessionStart'], ['UserPromptSubmit'], ['UserPromptSubmit', 'UserPromptSubmit'], ['PermissionRequest'],
              ['Stop'], ['Interrupt'], ['StopFailure'], ['UserPromptSubmit', 'PermissionRequest']]
     count = 0
     with tempfile.TemporaryDirectory() as tmp:

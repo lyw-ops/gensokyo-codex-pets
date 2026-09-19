@@ -1,7 +1,7 @@
 import Foundation
 
 // Behavior owns only timing/input arbitration. Work observation and food tiers stay outside.
-enum PetArtwork: String { case standing, eating, slouch, sleeping }
+enum PetArtwork: String { case standing, eating, workEatingTier2, workEatingTier3, slouch, sleeping }
 
 /// Frame selection is data, not code. A new action declares the program it plays
 /// instead of adding another branch to the presentation switch.
@@ -137,9 +137,13 @@ struct PoolEntry {
 
 final class PetBehavior {
     private(set) var base = "disconnected"
+    private(set) var activeTaskCount = 0
+    private(set) var displayedFoodTier = 0
     private(set) var action: PetAction?
     private(set) var dragging = false
     private var baseStarted: Double
+    private var pendingFoodTier: Int?
+    private var pendingTierBoundary = Double.infinity
     private var actionStarted = 0.0
     private var lastClick = -Double.infinity
     private var clickCount = 0
@@ -188,6 +192,42 @@ final class PetBehavior {
         })
     private func trace(_ kind: String, _ detail: [String: String] = [:]) { onTrace?(kind, detail) }
     private static func seconds(_ value: Double) -> String { String(format: "%.3f", value) }
+    static func foodTier(activeTaskCount: Int) -> Int { min(max(activeTaskCount, 0), 5) }
+
+    private var workLoopDuration: Double {
+        switch displayedFoodTier {
+        case 2: return 1.6
+        case 3: return 0 // The current tier-3 source is a still; every instant is a safe boundary.
+        default: return 7.0
+        }
+    }
+
+    private func nextWorkBoundary(after now: Double) -> Double {
+        let duration = workLoopDuration
+        if duration == 0 { return now }
+        let elapsed = max(0, now - baseStarted)
+        let phase = elapsed.truncatingRemainder(dividingBy: duration)
+        if phase < 0.000_001 || duration - phase < 0.000_001 { return now }
+        return now + duration - phase
+    }
+
+    private func commitLatestWorkTier(now: Double) {
+        guard base == "working" else { return }
+        displayedFoodTier = PetBehavior.foodTier(activeTaskCount: activeTaskCount)
+        pendingFoodTier = nil
+        pendingTierBoundary = .infinity
+        baseStarted = now
+    }
+
+    private func commitPendingWorkTierIfReady(now: Double) {
+        guard base == "working", action == nil, !dragging,
+              let pendingFoodTier, now + 0.000_001 >= pendingTierBoundary else { return }
+        displayedFoodTier = pendingFoodTier
+        self.pendingFoodTier = nil
+        pendingTierBoundary = .infinity
+        baseStarted = now
+        trace("work_tier", ["tier": String(displayedFoodTier), "reason": "loop_boundary"])
+    }
 
     private func resetQuiet(now: Double) {
         quietStarted = now
@@ -218,13 +258,43 @@ final class PetBehavior {
     }
 
     func setBase(_ state: String, now: Double) {
-        guard state != base else { return } // Counts and provider metadata never restart motion.
+        setWorkStatus(state, activeTaskCount: state == "working" ? activeTaskCount : 0, now: now)
+    }
+
+    /// Work truth enters here from `WorkStatus`. The behavior may delay only the visual tier
+    /// swap; it never writes back to the observed count.
+    func setWorkStatus(_ state: String, activeTaskCount count: Int, now: Double) {
+        let normalizedCount = max(0, count)
+        if state == base {
+            activeTaskCount = normalizedCount
+            guard state == "working" else { return }
+            let target = PetBehavior.foodTier(activeTaskCount: normalizedCount)
+            if action != nil || dragging {
+                commitLatestWorkTier(now: now)
+            } else if target == displayedFoodTier {
+                pendingFoodTier = nil
+                pendingTierBoundary = .infinity
+            } else {
+                if pendingFoodTier == nil { pendingTierBoundary = nextWorkBoundary(after: now) }
+                pendingFoodTier = target
+                trace("work_tier_pending", ["from": String(displayedFoodTier), "to": String(target),
+                                             "boundary_in": PetBehavior.seconds(max(0, pendingTierBoundary - now))])
+            }
+            return
+        }
         let previous = base
         base = state
+        activeTaskCount = normalizedCount
         baseStarted = now
         trace("base", ["from": previous, "to": state])
         if state == "failed" || (autonomousEpisodeActive && state != "idle") {
             finishAction(now: now, reason: state == "failed" ? "failed" : "left_idle")
+        }
+        pendingFoodTier = nil
+        pendingTierBoundary = .infinity
+        if state == "working" {
+            displayedFoodTier = PetBehavior.foodTier(activeTaskCount: normalizedCount)
+            trace("work_tier", ["tier": String(displayedFoodTier), "reason": "entered_working"])
         }
         resetQuiet(now: now)
         // A reaction returns to this newly selected base when it ends.
@@ -248,6 +318,9 @@ final class PetBehavior {
             if spec(current).locked || spec(current).priority >= spec(next).priority { return false }
             finishAction(now: now, reason: "preempted_by_" + next.rawValue)
         }
+        // Returning from a high-priority action must use the newest count, never the tier
+        // that happened to be visible before the interruption.
+        commitLatestWorkTier(now: now)
         action = next
         actionStarted = now
         trace("action_start", ["action": next.rawValue, "base": base,
@@ -288,6 +361,7 @@ final class PetBehavior {
 
     func beginDrag(now: Double) {
         finishAction(now: now, reason: "drag") // Physical pointer movement owns the body immediately.
+        commitLatestWorkTier(now: now)
         dragging = true
         clickCount = 0
     }
@@ -333,7 +407,8 @@ final class PetBehavior {
         trace("meal_attempt", detail)
     }
 
-    func presentation(now: Double, motionAllowed: Bool = true, mealsAllowed: Bool = true, slouchAllowed: Bool = true) -> PetPresentation {
+    func presentation(now: Double, motionAllowed: Bool = true, mealsAllowed: Bool = true,
+                      slouchAllowed: Bool = true, availableWorkTiers: Set<Int> = [2]) -> PetPresentation {
         expire(now: now)
         let enabled = motionAllowed && mealsAllowed
         if enabled != autonomyEnabled {
@@ -351,6 +426,7 @@ final class PetBehavior {
         if !slouchAllowed && autonomousEpisodeActive && action == .tableSlouch {
             finishAction(now: now, reason: "slouch_unavailable")
         }
+        commitPendingWorkTierIfReady(now: now)
         // Only observed idle is eligible. No catch-up attempts after a delayed tick.
         if enabled && base == "idle" && action == nil && !dragging && now >= nextMealAttempt {
             attemptAutonomy(now: now, slouchAllowed: slouchAllowed)
@@ -367,10 +443,26 @@ final class PetBehavior {
         }
         let t = max(0, now - baseStarted)
         // Work metadata stays in the status card, independent of finite character actions.
-        if ["working", "idle", "round_ended"].contains(base) {
-            return PetPresentation(node: base == "working" ? "work_standing" : "idle_relaxed",
+        if base == "working" {
+            if displayedFoodTier == 2 && availableWorkTiers.contains(2) {
+                return PetPresentation(node: "work_eating_task_2",
+                                       frame: motionAllowed ? Int(t * 10) % 16 : 0,
+                                       caption: "", wantsAnimation: motionAllowed,
+                                       artwork: .workEatingTier2)
+            }
+            if displayedFoodTier == 3 && availableWorkTiers.contains(3) {
+                return PetPresentation(node: "work_eating_task_3",
+                                       frame: 0, caption: "", wantsAnimation: false,
+                                       artwork: .workEatingTier3)
+            }
+            return PetPresentation(node: "work_fallback_tier_\(displayedFoodTier)",
                                    frame: motionAllowed ? Int(t * 20) % 140 : 0,
-                                   caption: "", wantsAnimation: true)
+                                   caption: "", wantsAnimation: motionAllowed)
+        }
+        if ["idle", "round_ended"].contains(base) {
+            return PetPresentation(node: "idle_relaxed",
+                                   frame: motionAllowed ? Int(t * 20) % 140 : 0,
+                                   caption: "", wantsAnimation: motionAllowed)
         }
         return PetPresentation(node: base, frame: 0, caption: "", wantsAnimation: false)
     }

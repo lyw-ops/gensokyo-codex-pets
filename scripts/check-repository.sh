@@ -50,11 +50,17 @@ required_files=(
   tools/test_import_reimu_task2_chew_v7.py
   tools/import_reimu_task2_chew_v9.py
   tools/test_import_reimu_task2_chew_v9.py
+  desktop/macos/test_work_tier2.py
+  desktop/macos/test_work_tier3.py
   pets/reimu/animations/eating/animation-set.json
   pets/reimu/animations/eating/sources/task_2-chew-v7/source.json
   pets/reimu/animations/eating/sources/task_2-chew-v7/base.png
   pets/reimu/animations/eating/sources/task_2-chew-v9/source.json
   pets/reimu/animations/eating/sources/task_2-chew-v9/base.png
+  pets/reimu/animations/eating/sources/task_3-static-v1/source.json
+  pets/reimu/animations/eating/sources/task_3-static-v1/README.md
+  pets/reimu/animations/eating/sources/task_3-static-v1/base.png
+  pets/reimu/animations/eating/sources/task_3-static-v1/frames/frame_000.png
   docs/sprite-harness-integration.md
   docs/reimu-layered-assets-v1.md
   docs/task-2-layer-asset-intake.md
@@ -213,6 +219,26 @@ source_frames = exact["manifest"].get("frames") or []
 if [frame.get("sha256") for frame in runtime_frames] != [
         frame.get("sha256") for frame in source_frames]:
     raise SystemExit("published task_2 runtime frames do not match the configured exact source")
+PY
+
+# Tier 3 is intentionally a byte-exact static source. It is a distinct native
+# workload identity, not a claim that a multi-frame task_3 animation exists.
+python3 - <<'PY'
+import hashlib, json
+from pathlib import Path
+
+root = Path("pets/reimu/animations/eating/sources/task_3-static-v1")
+manifest = json.loads((root / "source.json").read_text())
+expected = "45c212c88bd39053bb351d5f7bdf8da5d1a95ca743c532232290288927a2a9ff"
+if manifest.get("state_set") != "eating" or manifest.get("state") != "task_3":
+    raise SystemExit("task_3 static source identity mismatch")
+if manifest.get("playback") != {"fps": 8, "frame_count": 1, "loop": True}:
+    raise SystemExit("task_3 static source playback mismatch")
+for relative in ("base.png", "frames/frame_000.png"):
+    if hashlib.sha256((root / relative).read_bytes()).hexdigest() != expected:
+        raise SystemExit(f"task_3 static source digest mismatch: {relative}")
+if hashlib.sha256(Path("assets/reimu/eating/task_3/base.png").read_bytes()).hexdigest() != expected:
+    raise SystemExit("task_3 static source drifted from the existing Eating Set asset")
 PY
 
 node --experimental-default-type=module tools/test_app_runtime.mjs >/dev/null
