@@ -1,9 +1,8 @@
 # Sprite Harness integration
 
-Status: **Eating Set v1 identity baseline shipped and hardened (path
-isolation, set-level publish transaction, state-bound runtime manifests);
-Reimu Layered Assets v1 production tooling and task_2 intake validation ready;
-ART ASSET REQUIRED**
+Status: **task_2 chew-v9 exact source activated and published as a validated
+16-frame runtime; chew-v7 and the preceding fallback are retained as legacy; four Codex v2
+rows remain separately approved; full atlas incomplete**
 
 This document describes how `gensokyo-codex-pets` consumes
 [Sprite Harness](https://github.com/lyw-ops/Spirite-harness) as its animation
@@ -28,6 +27,8 @@ contract only):
 **gensokyo-codex-pets owns**:
 
 - the immutable source sprites (`assets/reimu/eating/<state>/base.png`);
+- pinned, maintainer-approved exact frame packages under
+  `pets/reimu/animations/eating/sources/` when base-locked pixels are required;
 - the consumer animation specification
   ([`pets/reimu/animations/eating/animation-set.json`](../pets/reimu/animations/eating/animation-set.json)),
   which is *not* a harness Animation Plan — the builder expands it into one
@@ -47,6 +48,7 @@ the same `sprite-harness` CLI with the same JSON outputs and exit codes.
 
 ```text
 assets/reimu/eating/<state>/base.png        (immutable source, never rewritten)
+or pets/reimu/animations/eating/sources/    (pinned exact-frame source)
         │
 pets/reimu/animations/eating/animation-set.json   (consumer spec, 6 states)
         │  tools/build_reimu_animations.py
@@ -78,7 +80,8 @@ Build rules enforced by the entry point:
   destructive operation — equality, containment in either direction, relative
   aliases, and symlink aliases are all rejected on fully resolved paths;
   any configured `layer_set` protects its resolved `asset_root` even when
-  all requested states remain flattened;
+  all requested states remain flattened; an exact-frame package is likewise
+  protected against equality, containment and aliases;
 - a validation failure (or any unexpected validation warning) aborts the whole
   run before anything is published;
 - **set-level publication transaction**: all requested states are staged
@@ -104,6 +107,7 @@ Run it as:
 python3 tools/build_reimu_animations.py            # build + validate + publish
 python3 tools/build_reimu_animations.py --no-publish
 python3 -m unittest tools.test_build_reimu_animations -v
+node --experimental-default-type=module tools/test_app_runtime.mjs
 ```
 
 ## The runtime manifest (`animation.json`)
@@ -180,13 +184,14 @@ harness's exact-copy path), with `reduced_motion.mode: hold_first_frame`. This
 proves the entire consumer pipeline end to end without faking motion the
 sources cannot support.
 
-**Local eating motion requires explicit layered source assets.** That is the
-next art milestone, not a build-tooling gap.
+Local eating motion requires either explicit authored layers that pass the
+static reconstruction gate, or a separately approved exact-frame sequence.
+The latter is intentionally supported for base-locked pixel work such as the
+current `task_2` jaw/cheek loop; it is not a shortcut for unreviewed art.
 
-## Layered sprites (Animation Plan v2) — builder ready, assets pending
+## Consumer input modes
 
-The builder now supports two source modes behind the same pipeline and the
-same runtime contract:
+The builder supports three source modes behind the same runtime contract:
 
 - **`flattened`** (default) — Animation Plan v1 bound to the immutable
   `base.png`, exactly as v1 shipped;
@@ -199,36 +204,58 @@ same runtime contract:
   harness error). Missing required layer PNGs fail closed with
   `ART ASSET REQUIRED`; layer files are SHA-verified unchanged after every
   build; the configured layered asset root is always protected.
+- **`exact_frames`** — a state names a repository-contained `frame_source`
+  manifest whose semantic binding, base digest, contiguous file set,
+  per-frame SHA-256, durations and loop endpoints are checked before Harness
+  runs. Harness plans against the exact neutral `base.png`; the builder copies
+  the pinned sequence into the build as external frames, then runs
+  `validate --write-qa → preview → contact-sheet → report`. No `render.json`
+  exists in this mode because the consumer did not ask Harness to repaint or
+  transform approved pixels. Publication still uses the ordinary manifest and
+  transaction path, and frame 0 must equal the fallback base byte-for-byte.
 
 The published `animation.json` format and the app player do not change: a
 layered state's manifest carries a layered `source` binding (layer set +
 per-layer digests) instead of the `base.png` digest, and `base.png` remains
 the fallback when animation loading fails. Reduced motion holds the validated
 manifest's frame 0 when available. The preview app cannot tell (and does not
-need to know) whether frames came from v1 or v2 — that is the architecture
-boundary.
+need to know) whether frames came from flattened rendering, layers, or an
+approved exact sequence — that is the architecture boundary.
 
 The authoring contract, per-layer ownership, coordinate system, z-order,
 allowed/forbidden transforms, and the pilot (`task_2`) QA checklist live in
 [`reimu-layered-assets-v1.md`](reimu-layered-assets-v1.md). The layered v2
 path is integration-tested end to end against the real CLI with synthetic
-authored layers; **no real Reimu layer PNGs exist yet** — producing them is
-an explicit art task, not a tooling gap.
+authored layers. Eleven current task_2 layer PNGs now pass the file-level
+intake contract, but their static reconstruction is not pixel-equal to the
+approved mother-locked neutral and therefore is not the color source for the
+confirmed loop.
 
 Use the [Task 2 Layer Asset Intake Pack](task-2-layer-asset-intake.md) and
 `python3 tools/check_reimu_layer_assets.py` before production. The first
 pilot uses full 596×596 RGBA layer canvases. Intake READY does not certify
 the provisional positions or visual quality: calibrate from real PNGs,
 pass static reconstruction using a temporary config and `--no-publish`, then
-review restrained local motion before publishing task_2. The current
-production animation-set still keeps every state flattened.
+review restrained local motion before publishing a layered state. For the
+current fixed-pose `task_2`, the approved exact source instead lives at
+`pets/reimu/animations/eating/sources/task_2-chew-v9/`: 16 frames, 10 fps,
+two asymmetric compress/puff beats, spatially tapered near-cheek motion, a
+smaller far-cheek response, and byte-identical neutral endpoints. Three
+independent no-publish consumer builds have identical non-location artifacts
+and Harness reported zero errors/warnings. Production `task_2` now publishes
+those exact 16 frames; its
+approved neutral SHA `0251947e…` is both runtime `base.png` and frames 0/15,
+while the preceding fallback SHA `d3139f4e…` is retained byte-exactly as
+`base-eating-set-v1-legacy.png`. The previous chew-v7 exact package remains
+pinned as a legacy source and still supplies the separately approved Codex
+`running` row; v8 remains Harness-only comparison material.
 
 Do not fake layers: no automatic body segmentation, bbox-guessed parts,
 color-based layer splits, AI inpainting, or ignored
 `TARGET_TRACKS_SKIPPED` warnings. The flattened sprites stay visual
 reference and runtime fallback only.
 
-## Future: Codex v2 atlas boundary
+## Codex v2 atlas boundary and approved row pilots
 
 The Codex v2 atlas (1536×2288, 8×11, 192×208, `spriteVersionNumber: 2`, see
 [codex-pet-format.md](codex-pet-format.md)) is a **different state space**
@@ -250,11 +277,25 @@ Codex standard-state mapping
 Codex v2 atlas (1536×2288)
 ```
 
-Producing a real atlas still requires new visual assets and animation design
-for every standard row (idle, both flight directions, waving, jumping, failed,
-waiting, running, review, and the 16-direction look family) at 192×208 cell
-scale. The current Eating Set cannot populate those rows, and no placeholder
-"final atlas" will be generated from it.
+Four atlas inputs have now passed this boundary. The confirmed
+`idle-v1-mother-locked-hair-settle` loop supplies standard row 0 (`idle`) and
+the confirmed `waiting-v1-mother-locked-attentive-brow` loop supplies row 6
+(`waiting`, user input needed); the maintainer-approved
+`chew-v7-mother-locked` loop supplies row 7 (`running`, chat actively
+working), and `review-v1-mother-locked-focused-brow` supplies row 8
+(`review`, completed output is unread). Each is stored as six 192×208 source cells
+under `pets/reimu/sprites/codex-v2/rows/`. Guarded importers pin the approved
+Harness animation, plan, source and frame digests; the corresponding row
+builders drive the public Harness CLI through plan, external-frame validation,
+preview/contact sheet, M5 export and `validate-export`. Each resulting
+1536×208 eight-cell row strip has six exact used cells and two verified
+transparent cells. None of these rows represents an exact task count.
+
+This is deliberately not a complete atlas. Producing an installable pet still
+requires approved visual assets and animation design for both flight
+directions, waving, jumping, failed, and the 16-direction
+look family. No transparent placeholder rows, provisional `pet.json`, or
+premature `spritesheet.webp` are generated.
 
 ## No implicit generation
 

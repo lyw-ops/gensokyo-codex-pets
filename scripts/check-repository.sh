@@ -31,14 +31,58 @@ required_files=(
   tools/split_eating_sheet.py
   tools/build_reimu_animations.py
   tools/check_reimu_layer_assets.py
+  tools/check_reimu_pose_geometry.py
   tools/test_build_reimu_animations.py
+  tools/test_app_runtime.mjs
+  tools/import_reimu_chew_v7_running.py
+  tools/build_reimu_codex_running_row.py
+  tools/test_build_reimu_codex_running_row.py
+  tools/import_reimu_idle_v1.py
+  tools/build_reimu_codex_idle_row.py
+  tools/test_build_reimu_codex_idle_row.py
+  tools/import_reimu_waiting_v1.py
+  tools/build_reimu_codex_waiting_row.py
+  tools/test_build_reimu_codex_waiting_row.py
+  tools/import_reimu_review_v1.py
+  tools/build_reimu_codex_review_row.py
+  tools/test_build_reimu_codex_review_row.py
+  tools/import_reimu_task2_chew_v7.py
+  tools/test_import_reimu_task2_chew_v7.py
+  tools/import_reimu_task2_chew_v9.py
+  tools/test_import_reimu_task2_chew_v9.py
   pets/reimu/animations/eating/animation-set.json
+  pets/reimu/animations/eating/sources/task_2-chew-v7/source.json
+  pets/reimu/animations/eating/sources/task_2-chew-v7/base.png
+  pets/reimu/animations/eating/sources/task_2-chew-v9/source.json
+  pets/reimu/animations/eating/sources/task_2-chew-v9/base.png
   docs/sprite-harness-integration.md
   docs/reimu-layered-assets-v1.md
   docs/task-2-layer-asset-intake.md
   pets/reimu/layers/eating/layer-set.json
+  pets/reimu/layers/slouch/layer-set.json
+  pets/reimu/animations/slouch/animation-set.json
+  assets/reimu/layered/slouch/shared/tatami.png
+  assets/reimu/layered/slouch/shared/table.png
   assets/reimu/layered/eating/README.md
+  assets/reimu/eating/task_2/legacy-assets.json
+  pets/reimu/sprites/codex-v2/README.md
+  pets/reimu/sprites/codex-v2/rows/idle/source.json
+  pets/reimu/sprites/codex-v2/rows/waiting/source.json
+  pets/reimu/sprites/codex-v2/rows/running/source.json
+  pets/reimu/sprites/codex-v2/rows/review/source.json
 )
+
+for frame in 000 001 002 003 004 005; do
+  required_files+=("pets/reimu/sprites/codex-v2/rows/idle/frame_${frame}.png")
+  required_files+=("pets/reimu/sprites/codex-v2/rows/waiting/frame_${frame}.png")
+  required_files+=("pets/reimu/sprites/codex-v2/rows/running/frame_${frame}.png")
+  required_files+=("pets/reimu/sprites/codex-v2/rows/review/frame_${frame}.png")
+done
+
+for frame in 000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015; do
+  required_files+=("pets/reimu/animations/eating/sources/task_2-chew-v7/frames/frame_${frame}.png")
+  required_files+=("pets/reimu/animations/eating/sources/task_2-chew-v9/frames/frame_${frame}.png")
+done
 
 for state in idle task_1 task_2 task_3 task_4 task_5; do
   required_files+=("assets/reimu/eating/${state}/base.png")
@@ -61,10 +105,41 @@ if ! grep -q "project-internal behavior specification" pets/reimu/metadata/actio
   exit 1
 fi
 
-if find pets/reimu/sprites -type f ! -name README.md -print -quit | grep -q .; then
-  echo "pets/reimu/sprites is reserved for the reviewed Codex atlas pipeline" >&2
-  exit 1
-fi
+# The reviewed Codex atlas source tree currently contains exactly four approved
+# row sources. No full atlas or installable package may appear before every row
+# passes its visual gate.
+python3 - <<'PY'
+import pathlib, sys
+
+root = pathlib.Path("pets/reimu/sprites")
+allowed = {
+    root / "README.md",
+    root / "codex-v2/README.md",
+    root / "codex-v2/rows/idle/source.json",
+    *(root / f"codex-v2/rows/idle/frame_{index:03d}.png" for index in range(6)),
+    root / "codex-v2/rows/waiting/source.json",
+    *(root / f"codex-v2/rows/waiting/frame_{index:03d}.png" for index in range(6)),
+    root / "codex-v2/rows/running/source.json",
+    *(root / f"codex-v2/rows/running/frame_{index:03d}.png" for index in range(6)),
+    root / "codex-v2/rows/review/source.json",
+    *(root / f"codex-v2/rows/review/frame_{index:03d}.png" for index in range(6)),
+}
+actual = {path for path in root.rglob("*") if path.is_file()}
+failures = []
+if actual != allowed:
+    failures.append(f"unexpected/missing reviewed sprite source files: {sorted(map(str, actual ^ allowed))}")
+for forbidden in (pathlib.Path("pets/reimu/pet.json"), pathlib.Path("pets/reimu/spritesheet.webp")):
+    if forbidden.exists():
+        failures.append(f"installable pet artifact is premature: {forbidden}")
+for failure in failures:
+    print(f"Codex v2 source check failed: {failure}", file=sys.stderr)
+sys.exit(1 if failures else 0)
+PY
+
+python3 tools/build_reimu_codex_running_row.py --check-only >/dev/null
+python3 tools/build_reimu_codex_idle_row.py --check-only >/dev/null
+python3 tools/build_reimu_codex_waiting_row.py --check-only >/dev/null
+python3 tools/build_reimu_codex_review_row.py --check-only >/dev/null
 
 # Eating Set v1 runtime sprites and published animation frames: 596x596 RGBA PNGs.
 for state in idle task_1 task_2 task_3 task_4 task_5; do
@@ -89,6 +164,60 @@ done
 # manifests must be valid JSON.
 python3 -m json.tool pets/reimu/animations/eating/animation-set.json >/dev/null
 python3 -m json.tool pets/reimu/layers/eating/layer-set.json >/dev/null
+python3 -m json.tool assets/reimu/eating/task_2/legacy-assets.json >/dev/null
+
+# The retired pre-chew-v7 fallback has one canonical, named copy. Its former
+# Finder-style duplicate alias must not reappear in the runtime frame set.
+python3 - <<'PY'
+import hashlib, json, pathlib
+
+state_dir = pathlib.Path("assets/reimu/eating/task_2")
+manifest = json.loads((state_dir / "legacy-assets.json").read_text())
+if manifest.get("legacy_assets_version") != 1:
+    raise SystemExit("unsupported task_2 legacy_assets_version")
+assets = manifest.get("assets") or []
+if len(assets) != 1:
+    raise SystemExit("task_2 legacy manifest must declare exactly one canonical asset")
+entry = assets[0]
+path = state_dir / entry.get("file", "")
+if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != entry.get("sha256"):
+    raise SystemExit("task_2 canonical legacy base is missing or digest-mismatched")
+alias = state_dir / entry.get("archived_alias", "")
+if alias.exists():
+    raise SystemExit(f"retired task_2 legacy alias reappeared in runtime frames: {alias}")
+PY
+
+# The approved task_2 exact sequence is the published consumer source. Reuse
+# the builder's fail-closed loader so digest, binding, numbering, endpoint and
+# undeclared-file checks cannot drift from the production configuration.
+python3 - <<'PY'
+import json
+from pathlib import Path
+from tools import build_reimu_animations as build
+
+config = build.load_config(Path("pets/reimu/animations/eating/animation-set.json"))
+if build.state_source_mode(config, "task_2") != "exact_frames":
+    raise SystemExit("production task_2 must use the approved exact_frames source")
+exact = build.load_exact_frame_source(config, "task_2")
+runtime = json.loads(Path("assets/reimu/eating/task_2/animation.json").read_text())
+provenance = runtime.get("provenance") or {}
+configured = config["states"]["task_2"]["frame_source"]
+if provenance.get("source_mode") != "approved_exact_frames":
+    raise SystemExit("published task_2 runtime is not bound to approved exact frames")
+if provenance.get("frame_source") != configured:
+    raise SystemExit("published task_2 runtime does not match the configured exact source")
+if provenance.get("frame_source_sha256") != exact["manifest_sha256"]:
+    raise SystemExit("published task_2 runtime exact-source manifest digest is stale")
+runtime_frames = runtime.get("frames") or []
+source_frames = exact["manifest"].get("frames") or []
+if [frame.get("sha256") for frame in runtime_frames] != [
+        frame.get("sha256") for frame in source_frames]:
+    raise SystemExit("published task_2 runtime frames do not match the configured exact source")
+PY
+
+node --experimental-default-type=module tools/test_app_runtime.mjs >/dev/null
+python3 -m unittest tools.test_import_reimu_task2_chew_v7 >/dev/null
+python3 -m unittest tools.test_import_reimu_task2_chew_v9 >/dev/null
 
 # Layered sources are authored, never generated at runtime: the layered tree
 # may contain only PNGs (plus documentation), and layer-set layer ids must be

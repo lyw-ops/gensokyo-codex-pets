@@ -1,0 +1,308 @@
+{
+  "layer_set_version": 1,
+  "character": "reimu",
+  "state_set": "slouch",
+  "contract_status": "authoring-contract-ready-art-asset-required",
+  "notes": [
+    "Machine-readable layered-source contract for the Reimu slouch (趴桌/伏案) pose family.",
+    "Consumer-side authoring metadata, like pets/reimu/layers/eating/layer-set.json. tools/build_reimu_animations.py turns it into the inline `source` object of a Sprite Harness Animation Plan v2; it is not a harness schema.",
+    "Layers must be explicitly authored PNGs under asset_root; never derive them from the flattened base.png or from the eating sprites by segmentation, thresholding, inpainting or bbox guessing.",
+    "Full 596x596 RGBA transparent canvases with every part already in final composition coordinates, and identity placement (custom anchor 0,0 at 0,0) — the same export policy the calibrated eating pilot uses, so the two sets share one coordinate system.",
+    "z-order is the reason this set exists separately. `table` sits at z 60, ABOVE body and head, and its top edge is y=379 while the upright head's bottom edge is y=375. Anything that must read as resting ON the table therefore lives above the table: arm_rest 62, arm_prop 65, head 70, eyes 80/81, mouth 90, hand_prop 95.",
+    "tatami.png and table.png are byte-identical copies of the eating set's shared layers, so the ground plane and the table never shift between pose families.",
+    "The body's contact edge with the tatami must stay at y=547, matching assets/reimu/layered/eating/shared/body.png, so the app-side placement of this canvas is deterministic.",
+    "Only the pose_prop state is declared. sleep_table is the planned second slice and must not be added until its art is authored.",
+    "eyes_open and eyes_closed share visibility_group 'eyes'. A state that has both present MUST declare layer_visibility for the group; otherwise the builder fails closed rather than compositing both layers on top of each other."
+  ],
+  "reference_canvas": {
+    "width": 596,
+    "height": 596
+  },
+  "canvas_policy": "full_canvas",
+  "asset_root": "assets/reimu/layered/slouch",
+  "geometry": {
+    "notes": [
+      "alpha_hygiene calibration: every approved layer in the eating rig scores 0 or 1 at isolation_radius 7, while the historical defect was faint pixels scattered across the whole canvas. A soft edge up to about three pixels wide is accepted.",
+      "joins/legible_at calibration: in the approved eating rig a connected limb shares 1412-2188 adjacent pixels and a limb that reads at 160px moves 111-572 pixels when removed. The floors are set well below those (600 and 100) so only a genuinely broken or invisible limb fails. The pet is displayed at 160px, so that is the size that counts.",
+      "An earlier clean_sockets check was removed: the approved face skin has a mean of 229 and the bow's lace is pure white, so a luma threshold inside the socket box cannot separate sclera from skin or frills. It reported 434 defects in artwork that has none.",
+      "palette measures presence, not dominance: the share of a layer's opaque pixels within 18 of the approved colour. Calibrated on the approved eating rig, where skin layers score 12.2-27.3% and the dress 4.7%, against the first slouch delivery at 0.2-5.8% skin. Floors are 8% for skin and 3% for dress red, which leaves margin on both sides.",
+      "An eye_cover check was removed with clean_sockets. It required eyes_closed to cover the eyes_open footprint, which is only necessary if the head bakes eye rendering. The approved head's sockets are plain skin, so its closed layer is a lash line covering 4301 fewer pixels — working artwork that the check failed."
+    ],
+    "support_edge": {
+      "layer": "body",
+      "y": 547,
+      "tolerance": 2
+    },
+    "alpha_hygiene": {
+      "speckle_alpha_below": 8,
+      "isolation_radius": 7,
+      "max_speckle_px": 8
+    },
+    "joins": {
+      "min_px": 600,
+      "pairs": [
+        {
+          "a": "arm_prop",
+          "b": "hand_prop"
+        },
+        {
+          "a": "arm_prop",
+          "b": "body"
+        },
+        {
+          "a": "arm_rest",
+          "b": "body"
+        },
+        {
+          "a": "hand_prop",
+          "b": "head"
+        }
+      ]
+    },
+    "legible_at": {
+      "size": 160,
+      "min_changed_px": 100,
+      "min_channel_delta": 12,
+      "exclude": [
+        "eyes_closed",
+        "effects"
+      ],
+      "layers": [
+        "hand_prop",
+        "arm_prop",
+        "arm_rest"
+      ]
+    },
+    "palette": {
+      "tolerance": 18,
+      "references": {
+        "skin": {
+          "colour": [
+            247,
+            224,
+            216
+          ],
+          "min_fraction": 0.08
+        },
+        "dress_red": {
+          "colour": [
+            228,
+            54,
+            36
+          ],
+          "min_fraction": 0.03
+        }
+      },
+      "layers": {
+        "head": "skin",
+        "hand_prop": "skin",
+        "arm_prop": "skin",
+        "arm_rest": "skin",
+        "body": "dress_red"
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "tatami",
+      "scope": "shared",
+      "image": "shared/tatami.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 0,
+      "motion_policy": "static",
+      "position_status": "measured_identity",
+      "notes": "Ground plane, byte-identical to the eating set. It must never breathe, bob or bounce."
+    },
+    {
+      "id": "body",
+      "scope": "state",
+      "image": "{state}/body.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 10,
+      "motion_policy": "breathing",
+      "position_status": "art_asset_required",
+      "notes": "Forward-leaning torso, skirt, legs and detached sleeves. Excludes head, arms, hands and props. Its lower part is occluded by the table; contact edge with the tatami stays at y=547."
+    },
+    {
+      "id": "table",
+      "scope": "shared",
+      "image": "shared/table.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 60,
+      "motion_policy": "static",
+      "position_status": "measured_identity",
+      "notes": "Low table, byte-identical to the eating set. Occludes the body; everything resting on it must sit above this z."
+    },
+    {
+      "id": "arm_rest",
+      "scope": "state",
+      "image": "{state}/arm_rest.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 62,
+      "motion_policy": "static",
+      "position_status": "art_asset_required",
+      "notes": "The non-propping arm and its hand, lying on the table or at the side."
+    },
+    {
+      "id": "arm_prop",
+      "scope": "state",
+      "image": "{state}/arm_prop.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 65,
+      "motion_policy": "static",
+      "position_status": "art_asset_required",
+      "notes": "Propping arm: elbow on the table through the forearm, ending at the wrist. Excludes the hand."
+    },
+    {
+      "id": "head",
+      "scope": "state",
+      "image": "{state}/head.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 70,
+      "motion_policy": "bob",
+      "position_status": "art_asset_required",
+      "notes": "Hair, large red bow and face base. Excludes eyes, eyebrows and mouth, so the sockets stay plain skin and either eye layer can be shown."
+    },
+    {
+      "id": "eyes_open",
+      "scope": "state",
+      "image": "{state}/eyes_open.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 80,
+      "motion_policy": "blink_visibility",
+      "position_status": "art_asset_required",
+      "notes": "Open eyes and eyebrows for the lowered head angle. Exactly one member of the 'eyes' visibility group is composited per frame.",
+      "visibility_group": "eyes"
+    },
+    {
+      "id": "eyes_closed",
+      "scope": "state",
+      "image": "{state}/eyes_closed.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 81,
+      "motion_policy": "blink_visibility",
+      "position_status": "art_asset_required",
+      "notes": "Closed eyes and eyebrows for the lowered head angle. It need not cover the eyes_open footprint: the head's sockets are plain skin, so hiding eyes_open already reveals clean skin.",
+      "visibility_group": "eyes"
+    },
+    {
+      "id": "mouth",
+      "scope": "state",
+      "image": "{state}/mouth.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 90,
+      "motion_policy": "static",
+      "position_status": "art_asset_required",
+      "notes": "Relaxed closed mouth for the lowered head angle."
+    },
+    {
+      "id": "hand_prop",
+      "scope": "state",
+      "image": "{state}/hand_prop.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 95,
+      "motion_policy": "static",
+      "position_status": "art_asset_required",
+      "notes": "The hand supporting the cheek. Drawn in front of the face, so it is the topmost character layer."
+    },
+    {
+      "id": "effects",
+      "scope": "state",
+      "image": "{state}/effects.png",
+      "anchor": {
+        "type": "custom",
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "z": 100,
+      "required": false,
+      "motion_policy": "static",
+      "position_status": "not_authored",
+      "notes": "Reserved and intentionally unauthored. No Zzz text, floating symbols, particles or danmaku are permitted in this pose family."
+    }
+  ]
+}

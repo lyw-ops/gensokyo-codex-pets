@@ -1,0 +1,107 @@
+{
+  "action": "work_eating",
+  "approval": {
+    "consumer_integration": "maintainer authorized 2026-09-04",
+    "keyframes": "maintainer confirmed",
+    "loop": "maintainer confirmed"
+  },
+  "character": "reimu",
+  "codex_contract": {
+    "cell": {
+      "height": 208,
+      "width": 192
+    },
+    "columns": 8,
+    "durations_ms": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      220
+    ],
+    "row": "running",
+    "row_index": 7,
+    "sprite_version": 2,
+    "used_columns": 6
+  },
+  "frames": [
+    {
+      "chew_level": 0,
+      "duration_ms": 120,
+      "file": "frame_000.png",
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 0
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 120,
+      "file": "frame_001.png",
+      "sha256": "fd96fd8af5a2747f8ae8733f51a1277bd40a2bf8816dc6c00c073eaf83f3688b",
+      "source_frame": 2
+    },
+    {
+      "chew_level": 3,
+      "duration_ms": 120,
+      "file": "frame_002.png",
+      "sha256": "13aa0ce9fa4748e14b4dafbfbb46c9e18d427a53dc97bd96f8c4b0e3112ca917",
+      "source_frame": 4
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 120,
+      "file": "frame_003.png",
+      "sha256": "fd96fd8af5a2747f8ae8733f51a1277bd40a2bf8816dc6c00c073eaf83f3688b",
+      "source_frame": 6
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 120,
+      "file": "frame_004.png",
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 7
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 220,
+      "file": "frame_005.png",
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 7
+    }
+  ],
+  "limitations": [
+    "This is one approved Codex standard row, not a complete or installable pet atlas.",
+    "Codex selects the running row for working activity; the current custom-pet manifest exposes no active-task count and cannot select task_2.",
+    "The source does not replace assets/reimu/eating/task_2/base.png or its runtime animation."
+  ],
+  "motion": {
+    "description": "fixed pose; one restrained neutral-to-puff-to-neutral cheek/jaw chew; food, hands, body, eyes, table and tatami remain fixed",
+    "source_frame_indices": [
+      0,
+      2,
+      4,
+      6,
+      7,
+      7
+    ],
+    "source_levels": [
+      0,
+      1,
+      3,
+      1,
+      0,
+      0
+    ]
+  },
+  "prototype": "chew-v7-mother-locked",
+  "provenance": {
+    "harness_animation_id": "reimu_task2_chew_v7_mother_locked_loop",
+    "harness_plan_digest": "sha256:247bce2b043342810add830ef11083dbd052064ee84504e7f957350c877d992f",
+    "harness_source_sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe",
+    "harness_version": "0.7.0",
+    "mother_sha256": "761fa75b07b7f2af9a9b16988d9b8596df726e2bd6dd56ef98d194f9db1d84d1",
+    "pixel_policy": "nearest-neighbor 596x596 to 192x192; bottom-aligned at (0,16) in a transparent 192x208 cell",
+    "source_kind": "maintainer-provided source image; maintainer confirmed and authorized its use for this project"
+  },
+  "row_source_version": 1
+}

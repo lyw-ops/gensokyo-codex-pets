@@ -1,0 +1,162 @@
+{
+  "approval": {
+    "consumer_preflight": "maintainer authorized 2026-09-05",
+    "keyframes": "maintainer confirmed",
+    "loop": "maintainer confirmed 2026-09-05",
+    "source_image": "maintainer selected and confirmed"
+  },
+  "base": {
+    "file": "base.png",
+    "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+  },
+  "canvas": {
+    "height": 596,
+    "width": 596
+  },
+  "character": "reimu",
+  "exact_frame_source_version": 1,
+  "frames": [
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_000.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_phase": "compress_half",
+      "duration_ms": 100,
+      "file": "frames/frame_001.png",
+      "sha256": "9f68dafa729b7923d1d3b536c16b2ce1524c1ecff3816cf8e5030badd4811144"
+    },
+    {
+      "chew_phase": "compress",
+      "duration_ms": 100,
+      "file": "frames/frame_002.png",
+      "sha256": "57bf28a96b1680972ace09066f199f22b9d56a6e978cc7f190d6861ecaf6ada8"
+    },
+    {
+      "chew_phase": "cross_mid",
+      "duration_ms": 100,
+      "file": "frames/frame_003.png",
+      "sha256": "e203b7adf1064621fab836ec7db7e36ece1523f087fef53f7b03c819b7109d74"
+    },
+    {
+      "chew_phase": "puff",
+      "duration_ms": 100,
+      "file": "frames/frame_004.png",
+      "sha256": "5ba18281cae838f0ac899318611fe241fbf7b8ae3942a56724d14e852e58c228"
+    },
+    {
+      "chew_phase": "puff_half",
+      "duration_ms": 100,
+      "file": "frames/frame_005.png",
+      "sha256": "196d1d9e81a442f957c8f6071591df74bbe19d77082bc2af551cc1823e047cdc"
+    },
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_006.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_007.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_phase": "compress_half",
+      "duration_ms": 100,
+      "file": "frames/frame_008.png",
+      "sha256": "9f68dafa729b7923d1d3b536c16b2ce1524c1ecff3816cf8e5030badd4811144"
+    },
+    {
+      "chew_phase": "compress",
+      "duration_ms": 100,
+      "file": "frames/frame_009.png",
+      "sha256": "57bf28a96b1680972ace09066f199f22b9d56a6e978cc7f190d6861ecaf6ada8"
+    },
+    {
+      "chew_phase": "cross_mid",
+      "duration_ms": 100,
+      "file": "frames/frame_010.png",
+      "sha256": "e203b7adf1064621fab836ec7db7e36ece1523f087fef53f7b03c819b7109d74"
+    },
+    {
+      "chew_phase": "puff",
+      "duration_ms": 100,
+      "file": "frames/frame_011.png",
+      "sha256": "5ba18281cae838f0ac899318611fe241fbf7b8ae3942a56724d14e852e58c228"
+    },
+    {
+      "chew_phase": "puff_half",
+      "duration_ms": 100,
+      "file": "frames/frame_012.png",
+      "sha256": "196d1d9e81a442f957c8f6071591df74bbe19d77082bc2af551cc1823e047cdc"
+    },
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_013.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_014.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_phase": "neutral",
+      "duration_ms": 100,
+      "file": "frames/frame_015.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    }
+  ],
+  "motion": {
+    "description": "two asymmetric closed-mouth compress/puff chewing beats with a spatially tapered near-cheek contour and smaller far-cheek response",
+    "dynamic_bbox_exclusive": [
+      218,
+      255,
+      353,
+      280
+    ],
+    "pixel_checks": {
+      "dynamic_union_pixels": 1071,
+      "new_rgba_values": 0,
+      "protected_overlap_pixels": 0
+    },
+    "static": [
+      "rice ball core",
+      "hands",
+      "sleeves",
+      "body",
+      "hair mass",
+      "neck",
+      "collar",
+      "table",
+      "tatami",
+      "eyes",
+      "eyebrows",
+      "mouth",
+      "mole",
+      "central face"
+    ]
+  },
+  "playback": {
+    "fps": 10,
+    "frame_count": 16,
+    "loop": true
+  },
+  "prototype": "chew-v9-asymmetric-cheeks",
+  "provenance": {
+    "harness_animation_id": "reimu_task2_chew_v9_asymmetric_cheeks_loop",
+    "harness_plan_digest": "sha256:cfe76138b8a10ed738554946f174e5706b485a0cd3ec4edc78bfd75a2e8d39f8",
+    "harness_source_sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe",
+    "harness_version": "0.7.0",
+    "mother_sha256": "761fa75b07b7f2af9a9b16988d9b8596df726e2bd6dd56ef98d194f9db1d84d1",
+    "pixel_policy": "exact 596x596 approved Harness frames; no resampling or repaint in consumer"
+  },
+  "state": "task_2",
+  "state_set": "eating"
+}

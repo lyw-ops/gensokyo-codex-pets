@@ -11,7 +11,7 @@ if __package__:
 else:
     import build_reimu_animations as build
 
-LAYER_SET = "pets/reimu/layers/eating/layer-set.json"
+DEFAULT_CONFIG = "pets/reimu/animations/eating/animation-set.json"
 
 
 def inspect_png(path: Path, layer: dict, canvas: dict, policy: str | None) -> None:
@@ -79,24 +79,29 @@ def unexpected_layer_pngs(layer_set: dict, layer_root: Path, states: list[str]) 
     return failures
 
 
-def validate_runtime_source(source: dict, state: str, repo_root: Path) -> list[str]:
+def validate_runtime_source(source: dict, state: str, repo_root: Path,
+                            config: dict | None = None) -> list[str]:
     """Recompute a published state's source binding from current authored inputs."""
     if not isinstance(source, dict):
         return ["manifest source must be an object"]
+    if config is None:
+        config = build.load_config(repo_root / DEFAULT_CONFIG)
+    source_file = config["source_file"]
     if source.get("mode") != "layered":
-        base = repo_root / "assets/reimu/eating" / state / "base.png"
-        if source.get("file") != "base.png" or source.get("sha256") != build.sha256_file(base):
-            return ["manifest source binding does not match base.png"]
+        base = repo_root / config["source_root"] / state / source_file
+        if source.get("file") != source_file or source.get("sha256") != build.sha256_file(base):
+            return [f"manifest source binding does not match {source_file}"]
         return []
-    if source.get("layer_set") != LAYER_SET:
-        return [f"wrong layer_set: expected {LAYER_SET}"]
+    expected_layer_set = config.get("layer_set")
+    if expected_layer_set is None:
+        return [f"animation set {build.config_spec_path(config)} declares no layer_set"]
+    if source.get("layer_set") != expected_layer_set:
+        return [f"wrong layer_set: expected {expected_layer_set}"]
     try:
-        layer_set = build.load_layer_set(repo_root / LAYER_SET)
-        if (layer_set["character"], layer_set["state_set"]) != ("reimu", "eating"):
-            return ["layer-set character/state_set binding mismatch"]
+        layer_set = build.load_layer_set(repo_root / expected_layer_set)
+        build.assert_layer_set_binding(layer_set, config)
         layer_root = (repo_root / layer_set["asset_root"]).resolve()
         records, failures, _ = inspect_assets(layer_set, state, layer_root)
-        config = build.load_config(repo_root / "pets/reimu/animations/eating/animation-set.json")
         failures += unexpected_layer_pngs(layer_set, layer_root, list(config["states"]))
         declared = source.get("layers")
         if not isinstance(declared, list) or any(
@@ -121,26 +126,31 @@ def validate_runtime_source(source: dict, state: str, repo_root: Path) -> list[s
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check authored PNG intake; never renders or publishes.")
+    parser.add_argument("--config", default=DEFAULT_CONFIG,
+                        help="animation set config, repo-relative (default: %(default)s)")
     parser.add_argument("--state", default="task_2", help="state to inspect (default: task_2)")
     args = parser.parse_args(argv)
     root = build.REPO_ROOT
     records, failures, optional = [], [], []
     try:
-        config = build.load_config(root / "pets/reimu/animations/eating/animation-set.json")
+        config = build.load_config(root / args.config)
         if args.state not in config["states"]:
-            raise build.BuildError(f"unknown state: {args.state}")
-        if config.get("layer_set") != LAYER_SET:
-            raise build.BuildError(f"animation-set must name the official layer_set: {LAYER_SET}")
-        layer_set = build.load_layer_set(root / LAYER_SET)
-        if (layer_set["character"], layer_set["state_set"]) != ("reimu", "eating"):
-            raise build.BuildError("layer-set character/state_set binding mismatch")
+            raise build.BuildError(
+                f"unknown state {args.state!r} in {build.config_spec_path(config)}; "
+                f"declared states: {', '.join(config['states'])}")
+        layer_set_path = config.get("layer_set")
+        if layer_set_path is None:
+            raise build.BuildError(
+                f"animation set {build.config_spec_path(config)} declares no layer_set")
+        layer_set = build.load_layer_set(root / layer_set_path)
+        build.assert_layer_set_binding(layer_set, config)
         layer_root = (root / layer_set["asset_root"]).resolve()
         records, failures, optional = inspect_assets(layer_set, args.state, layer_root)
         failures += unexpected_layer_pngs(layer_set, layer_root, list(config["states"]))
     except (build.BuildError, OSError, KeyError, TypeError, ValueError) as error:
         failures.append(str(error))
     print("ART ASSET REQUIRED" if failures else "READY")
-    print(f"{args.state}: {len(records)} valid authored layer PNG(s)")
+    print(f"{args.config} :: {args.state}: {len(records)} valid authored layer PNG(s)")
     for failure in failures:
         print("- " + failure.replace(str(root) + "/", ""))
     if optional:

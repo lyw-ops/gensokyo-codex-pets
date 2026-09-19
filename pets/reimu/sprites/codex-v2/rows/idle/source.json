@@ -1,0 +1,106 @@
+{
+  "action": "idle_relaxed",
+  "approval": {
+    "consumer_integration": "maintainer authorized 2026-09-04",
+    "keyframes": "maintainer confirmed",
+    "loop": "maintainer confirmed 2026-09-04"
+  },
+  "character": "reimu",
+  "codex_contract": {
+    "cell": {
+      "height": 208,
+      "width": 192
+    },
+    "columns": 8,
+    "durations_ms": [
+      280,
+      110,
+      110,
+      140,
+      140,
+      320
+    ],
+    "row": "idle",
+    "row_index": 0,
+    "sprite_version": 2,
+    "used_columns": 6
+  },
+  "frames": [
+    {
+      "duration_ms": 280,
+      "file": "frame_000.png",
+      "hair_settle_level": 0,
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 0
+    },
+    {
+      "duration_ms": 110,
+      "file": "frame_001.png",
+      "hair_settle_level": 0,
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 1
+    },
+    {
+      "duration_ms": 110,
+      "file": "frame_002.png",
+      "hair_settle_level": 1,
+      "sha256": "5bf2517f272736a2404173fe892f15b2d67a7a7e9adf317fb7d23b6472931061",
+      "source_frame": 2
+    },
+    {
+      "duration_ms": 140,
+      "file": "frame_003.png",
+      "hair_settle_level": 2,
+      "sha256": "c216835604360362893a751dc6b91a191b02f7c2290a67b3ed51f796a6ffc421",
+      "source_frame": 3
+    },
+    {
+      "duration_ms": 140,
+      "file": "frame_004.png",
+      "hair_settle_level": 1,
+      "sha256": "5bf2517f272736a2404173fe892f15b2d67a7a7e9adf317fb7d23b6472931061",
+      "source_frame": 4
+    },
+    {
+      "duration_ms": 320,
+      "file": "frame_005.png",
+      "hair_settle_level": 0,
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 5
+    }
+  ],
+  "limitations": [
+    "This is one approved Codex standard row, not a complete or installable pet atlas.",
+    "The current idle pilot contains the confirmed hair-settle micro-loop only; the earlier design-layer tea-sip idea is deferred.",
+    "The source does not replace assets/reimu/eating or modify the task-count runtime."
+  ],
+  "motion": {
+    "description": "fixed seated pose; only the image-left loose hair curl lower contour settles by 1-2px; eyes, face, food, hands, body, tea, table and tatami remain fixed",
+    "source_frame_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "source_levels": [
+      0,
+      0,
+      1,
+      2,
+      1,
+      0
+    ]
+  },
+  "prototype": "idle-v1-mother-locked-hair-settle",
+  "provenance": {
+    "harness_animation_id": "reimu_codex_v2_idle_v1_hair_settle_loop",
+    "harness_plan_digest": "sha256:b0a0df96a302a2282db7ffba9512d6f84d001298ebaaeca78611985cc3732b24",
+    "harness_source_sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe",
+    "harness_version": "0.7.0",
+    "pixel_policy": "nearest-neighbor 596x596 to 192x192; bottom-aligned at (0,16) in a transparent 192x208 cell",
+    "source_kind": "maintainer-provided source image; confirmed and authorized for this project"
+  },
+  "row_source_version": 1
+}

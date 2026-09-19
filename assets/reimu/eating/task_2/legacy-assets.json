@@ -1,0 +1,16 @@
+{
+  "legacy_assets_version": 1,
+  "character": "reimu",
+  "state_set": "eating",
+  "state": "task_2",
+  "assets": [
+    {
+      "file": "base-eating-set-v1-legacy.png",
+      "sha256": "d3139f4ecc428235b4bfd3d227be760cb151d7d3da126f78cfa0923b5ec7ee4d",
+      "role": "pre-chew-v7 static fallback",
+      "preserve": true,
+      "archived_alias": "frames/frame_000 2.png",
+      "alias_disposition": "redundant byte-identical copy removed from the runtime frame directory after maintainer approval on 2026-09-05"
+    }
+  ]
+}

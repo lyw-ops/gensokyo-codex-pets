@@ -14,7 +14,7 @@ Then open <http://localhost:8123/app/>.
 
 ## What it does
 
-- Loads each state's published runtime manifest (`assets/reimu/eating/<state>/animation.json`) and plays its ordered, harness-validated `frames[]` with per-frame durations and loop settings. The current published set is the identity baseline (one frame per state), so playback is visually static until multi-frame animations ship; the player machinery is already exercised and state switches swap the frame set instantly.
+- Loads each state's published runtime manifest (`assets/reimu/eating/<state>/animation.json`) and plays its ordered, harness-validated `frames[]` with per-frame durations and loop settings. Published `task_2` has 16 frames at 10 fps; the other five states currently remain one-frame identity holds. State switches swap frame sets instantly.
 - Falls back **explicitly** to `base.png` when a manifest is missing, malformed, or references broken frames: the state is marked `static-fallback` in the on-page animation status line and a warning is logged. Broken manifests are never silently absorbed.
 - Maps a debug task count to a state through the single policy boundary in [`task-state-mapping.js`](task-state-mapping.js): `0 → idle`, `1..4 → task_1..task_4`, `>= 5 → task_5`, negative or invalid → `idle`.
 - Honors reduced motion: `prefers-reduced-motion` (motion mode `auto`) or the explicit `reduced` QA toggle shows the state's declared reduced-motion frame and stops the frame timer.
@@ -27,3 +27,9 @@ Then open <http://localhost:8123/app/>.
 - [`animations.js`](animations.js) — strict runtime-manifest loader: validates `animation.json`, preloads frames, and upgrades each state's `frames[]` in place, or records an explicit fallback status.
 - [`task-state-mapping.js`](task-state-mapping.js) — the only place that converts a task count into a state id.
 - [`main.js`](main.js) / [`index.html`](index.html) — preview shell, the single token-guarded frame player (exactly one playback loop at any time; state switches clear the pending timer), and debug providers.
+
+Run the dependency-free mapping/loader/fallback regression checks with:
+
+```bash
+node --experimental-default-type=module tools/test_app_runtime.mjs
+```

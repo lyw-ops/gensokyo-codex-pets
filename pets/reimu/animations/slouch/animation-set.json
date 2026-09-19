@@ -1,0 +1,65 @@
+{
+  "set_version": 1,
+  "character": "reimu",
+  "state_set": "slouch",
+  "consumer": "gensokyo-codex-pets",
+  "notes": [
+    "Consumer-side animation specification for the Reimu slouch (趴桌/伏案) pose family.",
+    "This file is NOT a Sprite Harness Animation Plan; tools/build_reimu_animations.py deterministically expands it into one legal plan per state and drives the public sprite-harness CLI.",
+    "This set exists so one authored pose family can serve idle_table_slouch, idle_yawn, doze_nod, sleep_table and wake_up, which the action catalog lists as five separate actions built on two bodies.",
+    "Every state here is layered: no flattened base sprite is authored for this set, and no layer may be derived from the eating set's flattened sprites.",
+    "sleep_table is the planned second slice and is deliberately not declared yet: declaring an unauthored state would widen the allowed-PNG set and weaken the intake gate.",
+    "A state with both eye layers present must declare layer_visibility for the 'eyes' group or the build fails closed.",
+    "pose_prop is a held slouch loop: nothing translates and the only change is a blink. The eyes group shows eyes_open except on frames 32-33, which the builder expands into opacity keyframe tracks (hold interpolation) targeting the two eye layers, so exactly one is ever composited.",
+    "Time-varying visibility needs keyframe tracks and therefore sprite-harness >= 0.8.0; the published 0.7.0 rejects them with MALFORMED_SPEC. Constant visibility needs no tracks at all because a layer hidden for the whole state is left out of the composed source.",
+    "The 7 s cycle mirrors the approved standing blink rhythm, but fps, frame_count and the blink frames have NOT been visually approved yet.",
+    "expected_validation_warnings is an allow-list: a warning outside it fails the build. It is empty because pose_prop now carries real motion, so a future ZERO_MOTION would be a regression rather than an expected condition."
+  ],
+  "source_root": "assets/reimu/slouch",
+  "publish_root": "assets/reimu/slouch",
+  "source_file": "base.png",
+  "layer_set": "pets/reimu/layers/slouch/layer-set.json",
+  "animation_id_prefix": "reimu_slouch",
+  "expected_validation_warnings": [],
+  "defaults": {
+    "plan_version": 1,
+    "playback": {
+      "fps": 8,
+      "frame_count": 1,
+      "loop": true
+    },
+    "anchor": {
+      "type": "bottom_center"
+    },
+    "constraints": {
+      "max_displacement_px": 1,
+      "max_frame_delta_px": 1
+    },
+    "reduced_motion": {
+      "mode": "hold_first_frame"
+    },
+    "tracks": [],
+    "events": []
+  },
+  "states": {
+    "pose_prop": {
+      "source_mode": "layered",
+      "playback": {
+        "fps": 5,
+        "frame_count": 35,
+        "loop": true
+      },
+      "layer_visibility": {
+        "eyes": {
+          "default": "eyes_open",
+          "frames": {
+            "eyes_closed": [
+              32,
+              33
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,9 +6,9 @@
   "notes": [
     "Consumer-side animation specification for the Reimu Eating Set v1.",
     "This file is NOT a Sprite Harness Animation Plan; tools/build_reimu_animations.py deterministically expands it into one legal plan per state and drives the public sprite-harness CLI.",
-    "The current sources are flattened single-image sprites (base.png) that include the low table, food, and tatami. Whole-sprite motion moves the ground line and the food together with the character, so this baseline is deliberately an identity hold: one validated frame per state.",
-    "Local eating motion (breathing, head bob, chewing, blink) requires explicit layered source assets and an Animation Plan v2; see docs/sprite-harness-integration.md and docs/reimu-layered-assets-v1.md.",
-    "A state opts into layered v2 by setting the consumer key \"source_mode\": \"layered\" (plus its local tracks); the builder then composes the plan's source object from layer_set. The key never reaches the generated plan. No state is layered yet: the authored layer PNGs do not exist (ART ASSET REQUIRED, pilot: task_2)."
+    "Flattened single-image sprites (base.png) include the low table, food, and tatami. Whole-sprite motion moves the ground line and food with the character, so states without approved local motion remain a one-frame identity hold.",
+    "A state may use authored layers through source_mode=layered, or a pinned maintainer-approved external sequence through source_mode=exact_frames. Both paths are validated by Sprite Harness; consumer-only routing keys never reach the Animation Plan.",
+    "The confirmed task_2 chew-v9 exact sequence is pinned under pets/reimu/animations/eating/sources and is the production runtime source. Its approved neutral is the production task_2 fallback; chew-v7 remains pinned as legacy, and the preceding Eating Set v1 fallback is retained as base-eating-set-v1-legacy.png with provenance in legacy-assets.json. The layered reconstruction is not task_2 color truth."
   ],
   "source_root": "assets/reimu/eating",
   "publish_root": "assets/reimu/eating",
@@ -39,7 +39,58 @@
   "states": {
     "idle": {},
     "task_1": {},
-    "task_2": {},
+    "task_2": {
+      "source_mode": "exact_frames",
+      "frame_source": "pets/reimu/animations/eating/sources/task_2-chew-v9/source.json",
+      "playback": {
+        "fps": 10,
+        "frame_count": 16,
+        "loop": true
+      },
+      "anchor": {
+        "type": "custom",
+        "x": 0.5,
+        "y": 0.94
+      },
+      "constraints": {
+        "max_displacement_px": 5,
+        "max_frame_delta_px": 4
+      },
+      "events": [
+        {
+          "event_id": "chew_compress_1",
+          "type": "pose_phase",
+          "target": "asymmetric_lower_cheeks",
+          "frames": [
+            2
+          ]
+        },
+        {
+          "event_id": "chew_puff_1",
+          "type": "pose_phase",
+          "target": "asymmetric_lower_cheeks",
+          "frames": [
+            4
+          ]
+        },
+        {
+          "event_id": "chew_compress_2",
+          "type": "pose_phase",
+          "target": "asymmetric_lower_cheeks",
+          "frames": [
+            9
+          ]
+        },
+        {
+          "event_id": "chew_puff_2",
+          "type": "pose_phase",
+          "target": "asymmetric_lower_cheeks",
+          "frames": [
+            11
+          ]
+        }
+      ]
+    },
     "task_3": {},
     "task_4": {},
     "task_5": {}

@@ -1,6 +1,6 @@
 # Hakurei Reimu pet design
 
-Status: **Milestone 0 design brief; art not yet approved or generated**
+Status: **Design system incomplete; Codex v2 `running` row pilot approved**
 
 Reimu's full behavior system — the finite state machine, autonomous idle vocabulary, sleep chain, interaction reactions, and incident chain — is specified in [reimu-action-system.md](reimu-action-system.md). This brief keeps the character read, prop vocabulary, and the food-tier comedy; the action system defines how those elements move.
 
@@ -46,9 +46,9 @@ These are the performances that can ship inside the current static v2 atlas. Eac
 | `waving` | Simple shrine-maiden greeting with one controlled hand motion. |
 | `jumping` | Small lift or float; an attached yin-yang-orb interaction is optional. |
 | `failed` | A small comic mishap such as fumbling or dropping the held onigiri within the connected silhouette. |
-| `waiting` | Head near the table or slowly eating, but eyes/pose must clearly ask the user for input. |
+| `waiting` | Approved current row: fixed seated eating pose with open eyes and a 1–3px image-right eyebrow rise as the input-needed cue. Chin-in-hand and eye-flick variants remain future design options. |
 | `running` | Focused eating-while-working loop. The native sheet provides one workload appearance only. |
-| `review` | Reimu inspects an established task slip/scroll while eating; finished work should read as ready, not blocked. |
+| `review` | Approved current row: fixed seated eating pose with open eyes and a corrected single-line 1–2px image-right eyebrow lower, reading as focused inspection. Task-slip/scroll and nod remain future design options. |
 | look rows | Eyes lead, then head/bow subtly follow; table and lower-body anchor remain stable. |
 
 Avoid detached motion lines, floating punctuation, glow, floor shadows, loose tears, or decorative particles. Any comic effect must remain attached to the sprite and legible within one 192×208 cell.

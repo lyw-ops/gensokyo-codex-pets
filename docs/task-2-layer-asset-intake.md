@@ -1,15 +1,37 @@
 # Task 2 Layer Asset Intake Pack
 
-Status: **ART ASSET REQUIRED** — production tooling and intake validation
-are ready; the real static reconstruction and animation have not started.
-Pilot stays **task_2**. The six published flattened identity holds remain current.
+Status: **FILE INTAKE READY; LAYERED RECONSTRUCTION NOT APPROVED; EXACT LOOP
+HARNESS-VALIDATED AND PUBLISHED**.
+
+The current tree contains eleven task_2/shared full-canvas layer PNGs; the
+read-only intake command reports `READY` with only optional `effects.png`
+absent. A one-frame layered reconstruction validates technically, but it is
+not pixel-equal to the maintainer-approved mother-locked neutral: 204,953
+visible RGBA pixels differ and the alpha bounds differ. It therefore remains
+structural/reference material and is not the color source for the approved
+animation.
+
+The confirmed current `task_2` art direction is instead a fixed-pose exact
+sequence: 16 frames at 10 fps, two asymmetric compress/puff jaw/cheek beats,
+open eyes, and no movement in the rice-ball core, hands, sleeves, body, hair
+mass, neck, collar, mouth, table or tatami. Its pinned production source is
+`pets/reimu/animations/eating/sources/task_2-chew-v9/`; chew-v7 remains pinned
+as legacy. The consumer builder's `exact_frames` mode validates it with
+identical non-location build artifacts and zero Harness errors/warnings.
+Published `assets/reimu/eating/task_2` now contains those 16 v9 frames. Its
+approved neutral is the active fallback and byte-identical loop endpoint; the
+old one-frame fallback is retained byte-exactly as
+`base-eating-set-v1-legacy.png` and declared in `legacy-assets.json`.
+
+The remainder of this document preserves the layered intake contract for
+future authored-layer work; it no longer describes the active color path for
+the first approved task_2 loop.
 
 ## What is available
 
-Read-only inventory on 2026-09-03 covered this consumer repository (including
-its layered source tree), the Harness workspace, and the maintainer archive
-previously identified in HANDOFF (`~/Desktop/灵梦`). No explicitly authored
-Reimu part PNGs or layered authoring masters were found in those locations.
+The original 2026-09-03 inventory found no layer PNGs. As of 2026-09-05 the
+working tree contains eleven files that pass the declared file contract; they
+have not passed the visual/color reconstruction gate described above.
 
 - `assets/reimu/eating/task_2/base.png`: approved **flattened reference and
   fallback**, 596×596 RGBA, not an authored layer master.
@@ -27,10 +49,11 @@ No segmentation, masking, bbox crops, background removal, inpainting, or
 other cutouts may turn these references into layers. No provider calls,
 M4 generation, or new AI artwork are authorized by this task.
 
-## Files to author
+## Layer file contract
 
-Place the following under **`assets/reimu/layered/eating/`**. All eight are
-required; filenames must match the existing layer IDs exactly.
+The current working tree supplies the following required paths under
+**`assets/reimu/layered/eating/`**. Any future replacement must keep these
+filenames and ownership boundaries exactly.
 
 | Path | Pixels owned by this layer |
 | --- | --- |
@@ -138,26 +161,27 @@ Do not change task_2's production `source_mode` just because intake is READY.
    occlusion, missing pixels or accidental overlap. Correct authored source
    construction before motion. Record reviewer and result in HANDOFF.
 
-No static reconstruction preview is delivered with this intake pack because
-there are no authored PNGs to reconstruct.
+The current reconstruction preview is disposable build output under
+`build/task2-static/`; it proves technical composition only and is explicitly
+rejected as a pixel/color replacement for the approved neutral.
 
 ## Animation and publication after static approval
 
-Only after the static gate passes, prepare task_2's layered Animation Plan
-v2 via the existing builder. Start at **8 fps, 12 frames, loop** with a
-natural frame 0. Start local displacement experiments around 1–3 px on the
-596 px canvas. Prioritize slight body breathing and eating-hand motion.
-Keep `tatami`, `table` and `table_food` static. Coordinate held food with the
-grip. Add blink only if both eye variants work at 160 px; reject obvious
-cross-fade ghosting as `visual QA failed: discrete eye variant needed`.
-Add chew only if the mouth stays attached; head bob is last and tiny.
+For future layered work, only proceed after a new static reconstruction passes
+the visual gate against its intended reference. Do not use the superseded
+moving-hand/blink experiment as the current task_2 specification. The active
+approved loop keeps every listed protected region fixed and changes only the
+one-sided jaw/cheek outline through the pinned exact-frame path.
 
 Run `plan → render → validate --write-qa → preview → contact-sheet → report`
 through the consumer builder using `--no-publish` while reviewing. Inspect
 all three sizes, loop return, grip/food attachment and the natural
-reduced-motion frame 0. Only after recorded visual approval may the existing
-builder publish task_2. Rebuild it twice to verify deterministic output and
-run repository checks with five flattened states plus the one layered state.
+reduced-motion frame 0. Only after recorded visual approval may a layered
+build publish a state. Exact-frame activation additionally requires runtime
+`base.png` to equal the exact source neutral; never publish the approved
+sequence against the old fallback because an animation-load failure would
+visibly switch character art. Rebuild twice and run repository checks before
+any publication.
 
 Stop at pilot validation for maintainer review. Do not expand the other five
 states or start the Codex atlas in this task.

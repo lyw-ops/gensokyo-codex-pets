@@ -30,6 +30,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_reimu_animations as build  # noqa: E402
 import check_reimu_layer_assets as intake  # noqa: E402
+import check_reimu_pose_geometry as geometry  # noqa: E402
+
+try:
+    import PIL  # noqa: F401
+    HAVE_PILLOW = True
+except ImportError:
+    HAVE_PILLOW = False
+
+EATING_LAYER_SET = "pets/reimu/layers/eating/layer-set.json"
 
 
 def make_test_config(tmp: Path) -> dict:
@@ -113,6 +122,98 @@ class ComposePlanSpecTests(unittest.TestCase):
     def test_unknown_state_is_an_error(self):
         with self.assertRaises(build.BuildError):
             build.compose_plan_spec(self.config, "task_9")
+
+
+def make_exact_frame_package(root: Path, state: str = "pilot", frame_count: int = 3
+                             ) -> tuple[dict, Path]:
+    package = root / "exact" / state
+    write_rgba_png(package / "base.png", width=16, height=16)
+    (package / "frames").mkdir()
+    frames = []
+    for index in range(frame_count):
+        path = package / "frames" / f"frame_{index:03d}.png"
+        shutil.copyfile(package / "base.png", path) if index == 0 else write_rgba_png(
+            path, width=16, height=16)
+        frames.append({
+            "file": f"frames/frame_{index:03d}.png",
+            "sha256": build.sha256_file(path),
+            "duration_ms": 100,
+        })
+    manifest = {
+        "exact_frame_source_version": 1,
+        "character": "reimu",
+        "state_set": "eating",
+        "state": state,
+        "canvas": {"width": 16, "height": 16},
+        "playback": {"fps": 10, "frame_count": frame_count, "loop": True},
+        "base": {"file": "base.png", "sha256": build.sha256_file(package / "base.png")},
+        "frames": frames,
+    }
+    manifest_path = package / "source.json"
+    manifest_path.write_text(json.dumps(manifest))
+    return manifest, manifest_path
+
+
+class ExactFrameSourceTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.config = make_test_config(self.tmp)
+        self.config["states"]["pilot"] = {
+            "source_mode": "exact_frames",
+            "frame_source": "exact/pilot/source.json",
+            "playback": {"fps": 10, "frame_count": 3, "loop": True},
+        }
+        self.manifest, self.path = make_exact_frame_package(self.tmp)
+
+    def load(self):
+        return build.load_exact_frame_source(self.config, "pilot", self.tmp)
+
+    def test_exact_source_is_bound_and_consumer_keys_do_not_reach_plan(self):
+        source = self.load()
+        self.assertEqual(len(source["frame_paths"]), 3)
+        self.assertEqual(source["base_path"].read_bytes(), source["frame_paths"][0].read_bytes())
+        plan = build.compose_plan_spec(self.config, "pilot")
+        self.assertNotIn("source_mode", plan)
+        self.assertNotIn("frame_source", plan)
+        self.assertEqual(plan["playback"], self.manifest["playback"])
+
+    def test_exact_source_digest_tamper_fails(self):
+        self.manifest["frames"][1]["sha256"] = "0" * 64
+        self.path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(build.BuildError, "digest-mismatched"):
+            self.load()
+
+    def test_exact_source_semantic_mismatch_fails(self):
+        self.manifest["state"] = "task_2"
+        self.path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(build.BuildError, "binding mismatch"):
+            self.load()
+
+    def test_exact_source_undeclared_file_fails(self):
+        write_rgba_png(self.path.parent / "unexpected.png")
+        with self.assertRaisesRegex(build.BuildError, "undeclared/missing"):
+            self.load()
+
+    def test_exact_source_requires_neutral_loop_endpoints(self):
+        from PIL import Image
+        final = self.path.parent / self.manifest["frames"][-1]["file"]
+        with Image.open(final) as opened:
+            changed = opened.convert("RGBA")
+        changed.putpixel((2, 2), (1, 2, 3, 255))
+        changed.save(final)
+        self.manifest["frames"][-1]["sha256"] = build.sha256_file(final)
+        self.path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(build.BuildError, "endpoints"):
+            self.load()
+
+    def test_exact_source_rejects_wrong_png_dimensions(self):
+        frame = self.path.parent / self.manifest["frames"][1]["file"]
+        write_rgba_png(frame, width=12, height=12)
+        self.manifest["frames"][1]["sha256"] = build.sha256_file(frame)
+        self.path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(build.BuildError, "dimensions"):
+            self.load()
 
 
 class FindHarnessTests(unittest.TestCase):
@@ -519,6 +620,261 @@ def make_layer_set(asset_root: Path) -> dict:
     }
 
 
+def paint(path: Path, size: int, pixels: dict) -> None:
+    """Write an RGBA PNG from {(x, y): (r, g, b, a)}; everything else transparent."""
+    from PIL import Image
+    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    for (x, y), value in pixels.items():
+        image.putpixel((x, y), value)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(path)
+
+
+@unittest.skipUnless(HAVE_PILLOW, "Pillow required")
+class LayerVisibilityTests(unittest.TestCase):
+    """Exactly one member of a visibility group may ever be composited."""
+
+    def setUp(self):
+        self.layer_set = {
+            "layer_set_version": 1, "character": "reimu", "state_set": "slouch",
+            "reference_canvas": {"width": 16, "height": 16}, "asset_root": "layers",
+            "layers": [
+                {"id": "head", "scope": "state", "image": "{state}/head.png",
+                 "anchor": {"type": "center"}, "position": {"x": 0, "y": 0}, "z": 10},
+                {"id": "eyes_open", "scope": "state", "image": "{state}/eyes_open.png",
+                 "anchor": {"type": "center"}, "position": {"x": 0, "y": 0}, "z": 20,
+                 "visibility_group": "eyes"},
+                {"id": "eyes_closed", "scope": "state", "image": "{state}/eyes_closed.png",
+                 "anchor": {"type": "center"}, "position": {"x": 0, "y": 0}, "z": 21,
+                 "visibility_group": "eyes"},
+            ],
+        }
+        self.present = {"head", "eyes_open", "eyes_closed"}
+
+    def resolve(self, spec, frames=1):
+        config = {"states": {"pose": {"layer_visibility": spec} if spec is not None else {}}}
+        return build.resolve_visibility(self.layer_set, config, "pose", self.present, frames)
+
+    def test_an_undeclared_group_fails_closed_instead_of_stacking(self):
+        with self.assertRaises(build.BuildError) as caught:
+            self.resolve(None)
+        self.assertIn("stacked instead of exclusive", str(caught.exception))
+
+    def test_constant_visibility_drops_the_hidden_layer_and_needs_no_track(self):
+        excluded, tracks = self.resolve({"eyes": {"default": "eyes_open"}})
+        self.assertEqual(excluded, {"eyes_closed"})
+        self.assertEqual(tracks, [])
+
+    def test_time_varying_visibility_emits_hold_keyframes_only_at_transitions(self):
+        excluded, tracks = self.resolve(
+            {"eyes": {"default": "eyes_open", "frames": {"eyes_closed": [2, 3]}}}, frames=5)
+        self.assertEqual(excluded, set())
+        by_target = {track["target"]: track for track in tracks}
+        self.assertEqual(sorted(by_target), ["eyes_closed", "eyes_open"])
+        for track in tracks:
+            self.assertEqual((track["motion"], track["unit"]), ("opacity", "ratio"))
+            self.assertEqual(track["keyframes"][0]["at"], 0)  # the harness requires this
+            self.assertTrue(all(0 <= key["at"] < 1 for key in track["keyframes"]))
+            self.assertTrue(all(key["interpolation"] == "hold" for key in track["keyframes"]))
+        # Visible 0-1, hidden 2-3, visible 4 again: three segments, no per-frame spam.
+        self.assertEqual([(k["at"], k["value"]) for k in by_target["eyes_open"]["keyframes"]],
+                         [(0.0, 0.0), (0.4, -1.0), (0.8, 0.0)])
+        self.assertEqual([(k["at"], k["value"]) for k in by_target["eyes_closed"]["keyframes"]],
+                         [(0.0, -1.0), (0.4, 0.0), (0.8, -1.0)])
+
+    def test_two_members_cannot_claim_the_same_frame(self):
+        with self.assertRaises(build.BuildError) as caught:
+            self.resolve({"eyes": {"default": "eyes_open",
+                                   "frames": {"eyes_closed": [1], "eyes_open": [1]}}}, frames=3)
+        self.assertIn("claimed by both", str(caught.exception))
+
+    def test_frames_outside_the_state_are_refused(self):
+        with self.assertRaises(build.BuildError) as caught:
+            self.resolve({"eyes": {"default": "eyes_open", "frames": {"eyes_closed": [9]}}}, frames=3)
+        self.assertIn("outside the state", str(caught.exception))
+
+    def test_default_must_name_a_present_member(self):
+        with self.assertRaises(build.BuildError) as caught:
+            self.resolve({"eyes": {"default": "mouth"}})
+        self.assertIn("is not one of", str(caught.exception))
+
+    def test_unknown_group_is_refused(self):
+        with self.assertRaises(build.BuildError) as caught:
+            self.resolve({"hands": {"default": "eyes_open"}})
+        self.assertIn("unknown or absent group", str(caught.exception))
+
+    def test_a_group_whose_other_member_is_absent_needs_no_declaration(self):
+        excluded, tracks = build.resolve_visibility(
+            self.layer_set, {"states": {"pose": {}}}, "pose", {"head", "eyes_open"}, 1)
+        self.assertEqual((excluded, tracks), (set(), []))
+
+    def test_an_authored_track_may_not_also_drive_a_grouped_layer(self):
+        config = {"character": "reimu", "state_set": "slouch",
+                  "animation_id_prefix": "reimu_slouch",
+                  "defaults": {"playback": {"fps": 8, "frame_count": 5, "loop": True},
+                               "tracks": [{"track_id": "fade", "target": "eyes_open",
+                                           "motion": "opacity", "unit": "ratio",
+                                           "curve": "sine", "amplitude": 0.5, "cycles": 1}]},
+                  "states": {"pose": {"source_mode": "layered"}}}
+        _, tracks = self.resolve(
+            {"eyes": {"default": "eyes_open", "frames": {"eyes_closed": [2]}}}, frames=5)
+        with self.assertRaises(build.BuildError) as caught:
+            build.compose_plan_spec(config, "pose", layered_source={"layers": []},
+                                    visibility_tracks=tracks)
+        self.assertIn("already drives the opacity", str(caught.exception))
+
+
+class PoseGeometryTests(unittest.TestCase):
+    """Each check must actually fire; a gate that cannot fail is not a gate."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def solid(self, name, box, colour=(120, 70, 50, 255)):
+        path = self.tmp / name
+        x0, y0, x1, y1 = box
+        paint(path, 64, {(x, y): colour for x in range(x0, x1) for y in range(y0, y1)})
+        return path
+
+    def test_support_edge_reports_a_pose_that_floats(self):
+        paths = {"body": self.solid("body.png", (10, 10, 20, 30))}
+        rule = {"layer": "body", "y": 29, "tolerance": 0}
+        self.assertEqual(geometry.check_support_edge(paths, rule), [])
+        rule = {"layer": "body", "y": 40, "tolerance": 2}
+        self.assertIn("support edge is y=29", geometry.check_support_edge(paths, rule)[0])
+
+    def test_palette_measures_presence_not_dominance(self):
+        approved = (247, 224, 216)
+        on_model = self.solid("on_model.png", (10, 10, 40, 40), colour=approved + (255,))
+        drifted = self.solid("drifted.png", (10, 10, 40, 40), colour=(244, 196, 164, 255))
+        rule = {"tolerance": 18,
+                "references": {"skin": {"colour": list(approved), "min_fraction": 0.08}},
+                "layers": {"head": "skin"}}
+        self.assertEqual(geometry.check_palette({"head": on_model}, rule), [])
+        failure = geometry.check_palette({"head": drifted}, rule)[0]
+        self.assertIn("off-palette", failure)
+
+    def test_palette_is_not_fooled_by_a_more_numerous_other_colour(self):
+        # A dominant-colour test would pick the white lace; presence must not.
+        mixed = self.tmp / "mixed.png"
+        pixels = {(x, y): (255, 255, 255, 255) for x in range(0, 50) for y in range(0, 40)}
+        pixels.update({(x, y): (247, 224, 216, 255) for x in range(0, 50) for y in range(40, 50)})
+        paint(mixed, 64, pixels)
+        rule = {"tolerance": 18,
+                "references": {"skin": {"colour": [247, 224, 216], "min_fraction": 0.08}},
+                "layers": {"head": "skin"}}
+        self.assertEqual(geometry.check_palette({"head": mixed}, rule), [])
+
+    def test_alpha_hygiene_accepts_soft_edges_and_rejects_scattered_noise(self):
+        feathered = self.tmp / "feathered.png"
+        pixels = {(x, y): (120, 70, 50, 255) for x in range(20, 40) for y in range(20, 40)}
+        for x in range(18, 42):  # a three-pixel feather around the shape
+            for y in range(18, 42):
+                pixels.setdefault((x, y), (120, 70, 50, 4))
+        paint(feathered, 64, pixels)
+        rule = {"speckle_alpha_below": 8, "isolation_radius": 7, "max_speckle_px": 8}
+        self.assertEqual(geometry.check_alpha_hygiene({"body": feathered}, rule), [])
+        noisy = self.tmp / "noisy.png"
+        scattered = dict(pixels)
+        for index in range(40):
+            scattered[(index + 2, 60 - (index % 3))] = (255, 255, 255, 3)
+        paint(noisy, 64, scattered)
+        failure = geometry.check_alpha_hygiene({"body": noisy}, rule)[0]
+        self.assertIn("isolated pixel", failure)
+
+
+class SecondStateSetTests(unittest.TestCase):
+    """A state set other than `eating` must work end to end with no hardwired paths."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.layer_root = self.tmp / "assets/reimu/layered/slouch"
+        self.layer_set = make_layer_set(self.layer_root)
+        self.layer_set.update(state_set="slouch", canvas_policy="full_canvas")
+        self.layer_set["reference_canvas"] = {"width": 16, "height": 16}
+        self.spec = "pets/reimu/animations/slouch/animation-set.json"
+        self.config = make_test_config(self.tmp)
+        self.config.update(state_set="slouch", source_root="assets/reimu/slouch",
+                           publish_root="assets/reimu/slouch",
+                           animation_id_prefix="reimu_slouch",
+                           layer_set="pets/reimu/layers/slouch/layer-set.json",
+                           states={"pose_prop": {"source_mode": "layered"}})
+
+    def write(self, layers=("shared/panel.png", "pose_prop/marker.png")):
+        for relative in layers:
+            write_rgba_png(self.layer_root / relative, 16, 16)
+        contract = self.tmp / self.config["layer_set"]
+        contract.parent.mkdir(parents=True, exist_ok=True)
+        contract.write_text(json.dumps(self.layer_set))
+        config_path = self.tmp / self.spec
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text(json.dumps(self.config))
+
+    def run_intake(self, state="pose_prop"):
+        output = io.StringIO()
+        with mock.patch.object(build, "REPO_ROOT", self.tmp), contextlib.redirect_stdout(output):
+            code = intake.main(["--config", self.spec, "--state", state])
+        return code, output.getvalue()
+
+    def test_second_state_set_passes_intake(self):
+        self.write()
+        code, output = self.run_intake()
+        self.assertEqual(code, 0, output)
+        self.assertTrue(output.startswith("READY\n"), output)
+        self.assertIn(self.spec, output)
+
+    def test_missing_layers_are_listed_as_a_shopping_list(self):
+        self.write(layers=("shared/panel.png",))
+        code, output = self.run_intake()
+        self.assertEqual(code, 1)
+        self.assertTrue(output.startswith("ART ASSET REQUIRED\n"), output)
+        self.assertIn("pose_prop/marker.png", output)
+
+    def test_layer_set_bound_to_another_state_set_is_refused(self):
+        self.layer_set["state_set"] = "eating"
+        self.write()
+        code, output = self.run_intake()
+        self.assertEqual(code, 1)
+        self.assertIn("layer set binding mismatch", output)
+
+    def test_unknown_state_names_the_declared_states(self):
+        self.write()
+        code, output = self.run_intake(state="task_2")
+        self.assertEqual(code, 1)
+        self.assertIn("pose_prop", output)
+
+    def test_plan_and_manifest_name_their_own_animation_set(self):
+        path = self._written_config()
+        with mock.patch.object(build, "REPO_ROOT", self.tmp):
+            loaded = build.load_config(path)
+        self.assertEqual(build.config_spec_path(loaded), self.spec)
+        plan = build.compose_plan_spec(loaded, "pose_prop", layered_source={
+            "mode": "layered", "layer_set": loaded["layer_set"], "layers": []})
+        self.assertEqual(plan["metadata"]["spec"], self.spec)
+        self.assertEqual(plan["metadata"]["state_set"], "slouch")
+        self.assertEqual(plan["animation_id"], "reimu_slouch_pose_prop")
+
+    def _written_config(self):
+        self.write()
+        return self.tmp / self.spec
+
+    def test_in_memory_config_falls_back_to_the_layout_convention(self):
+        self.assertEqual(build.config_spec_path(self.config), self.spec)
+
+    def test_each_state_set_builds_in_its_own_directory(self):
+        eating = make_test_config(self.tmp)
+        self.assertNotEqual(build.default_build_dir(eating), build.default_build_dir(self.config))
+        self.assertTrue(str(build.default_build_dir(self.config)).endswith("reimu/slouch"))
+
+    def test_config_outside_the_repository_is_refused(self):
+        self.write()
+        with self.assertRaises(build.BuildError) as caught:
+            build.load_config(self.tmp / self.spec)
+        self.assertIn("inside the repository", str(caught.exception))
+
+
 class LayeredSourceTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -663,8 +1019,13 @@ class RepositorySourceGateTests(unittest.TestCase):
         self.repo = self.tmp / "repo"
         shutil.copytree(build.REPO_ROOT, self.repo,
                         ignore=shutil.ignore_patterns(".git", "build", ".venv", "__pycache__"))
-        self.layer_set = build.load_layer_set(self.repo / intake.LAYER_SET)
+        self.layer_set = build.load_layer_set(self.repo / EATING_LAYER_SET)
         self.layer_root = self.repo / self.layer_set["asset_root"]
+        # These tests author their own exact required/optional layer set. Do
+        # not let unrelated real working-tree PNGs copied into the disposable
+        # fixture change which optionals are considered present.
+        for path in self.layer_root.rglob("*.png"):
+            path.unlink()
         self.manifest_path = self.repo / "assets/reimu/eating/task_2/animation.json"
         self.manifest = json.loads(self.manifest_path.read_text())
 
@@ -676,7 +1037,7 @@ class RepositorySourceGateTests(unittest.TestCase):
             path = self.layer_root / layer["image"].replace("{state}", "task_2")
             write_rgba_png(path, width=596, height=596)
             entries.append({"id": layer["id"], "sha256": build.sha256_file(path)})
-        self.manifest["source"] = {"mode": "layered", "layer_set": intake.LAYER_SET,
+        self.manifest["source"] = {"mode": "layered", "layer_set": EATING_LAYER_SET,
                                    "layers": entries}
 
     def run_check(self, expected=0, message=None):
@@ -784,13 +1145,13 @@ class LayerIntakeTests(unittest.TestCase):
         return result
 
     def run_intake(self):
-        contract = self.tmp / intake.LAYER_SET
+        contract = self.tmp / EATING_LAYER_SET
         contract.parent.mkdir(parents=True, exist_ok=True)
         contract.write_text(json.dumps(self.layer_set))
         config_path = self.tmp / "pets/reimu/animations/eating/animation-set.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config = make_test_config(self.tmp)
-        config.update(layer_set=intake.LAYER_SET, states={"task_2": {}})
+        config.update(layer_set=EATING_LAYER_SET, states={"task_2": {}})
         config_path.write_text(json.dumps(config))
         output = io.StringIO()
         with mock.patch.object(build, "REPO_ROOT", self.tmp), contextlib.redirect_stdout(output):
@@ -968,6 +1329,43 @@ class IntegrationTests(unittest.TestCase):
             build.build_state(self.harness, config, "pilot", self.tmp / "build-m",
                               self.source_root, layer_set=layer_set, layer_root=layer_root)
         self.assertIn("ART ASSET REQUIRED", str(ctx.exception))
+
+    def test_exact_frame_pipeline_validates_external_pixels_and_publishes(self):
+        config = make_test_config(self.tmp)
+        config["states"]["pilot"] = {
+            "source_mode": "exact_frames",
+            "frame_source": "exact/pilot/source.json",
+            "playback": {"fps": 10, "frame_count": 3, "loop": True},
+            "tracks": [],
+        }
+        _manifest, _path = make_exact_frame_package(self.tmp)
+        exact = build.load_exact_frame_source(config, "pilot", self.tmp)
+        (self.source_root / "pilot").mkdir(parents=True)
+        shutil.copyfile(exact["base_path"], self.source_root / "pilot" / "base.png")
+
+        facts = build.build_state(
+            self.harness, config, "pilot", self.tmp / "build-exact", self.source_root,
+            exact_source=exact,
+        )
+        self.assertEqual(facts["source_mode"], "exact_frames")
+        self.assertEqual(facts["render_mode"], "external")
+        self.assertEqual(len(facts["frame_files"]), 3)
+        self.assertFalse((facts["build_path"] / "render.json").exists())
+        for built_name, source_path in zip(facts["frame_files"], exact["frame_paths"], strict=True):
+            self.assertEqual(
+                (facts["build_path"] / built_name).read_bytes(), source_path.read_bytes())
+
+        runtime = self.tmp / "publish-exact" / "pilot"
+        runtime.mkdir(parents=True)
+        shutil.copyfile(exact["base_path"], runtime / "base.png")
+        manifest = build.make_manifest(facts, build.harness_version(self.harness), config)
+        self.assertEqual([frame["duration_ms"] for frame in manifest["frames"]], [100, 100, 100])
+        self.assertEqual(manifest["source"], {
+            "file": "base.png", "sha256": exact["base_sha256"],
+        })
+        self.assertEqual(manifest["provenance"]["source_mode"], "approved_exact_frames")
+        build.publish_state(facts, manifest, runtime.parent, "base.png")
+        self.assertTrue((runtime / "frames" / "frame_002.png").is_file())
 
     def test_validation_failure_blocks_the_pipeline(self):
         # A plan that violates its own displacement budget must fail at the

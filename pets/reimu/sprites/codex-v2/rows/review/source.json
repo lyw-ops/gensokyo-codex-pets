@@ -1,0 +1,106 @@
+{
+  "action": "review_task_slip",
+  "approval": {
+    "consumer_integration": "maintainer authorized 2026-09-04",
+    "keyframes": "maintainer confirmed 2026-09-04 after residual-line correction",
+    "loop": "maintainer confirmed 2026-09-04"
+  },
+  "character": "reimu",
+  "codex_contract": {
+    "cell": {
+      "height": 208,
+      "width": 192
+    },
+    "columns": 8,
+    "durations_ms": [
+      150,
+      150,
+      150,
+      150,
+      150,
+      280
+    ],
+    "row": "review",
+    "row_index": 8,
+    "sprite_version": 2,
+    "used_columns": 6
+  },
+  "frames": [
+    {
+      "brow_lower_level": 0,
+      "duration_ms": 150,
+      "file": "frame_000.png",
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 0
+    },
+    {
+      "brow_lower_level": 1,
+      "duration_ms": 150,
+      "file": "frame_001.png",
+      "sha256": "fd75cb82ec89af5463b7daf312d6fcbcc328ade1af08332d4c61c2135a5110a0",
+      "source_frame": 1
+    },
+    {
+      "brow_lower_level": 2,
+      "duration_ms": 150,
+      "file": "frame_002.png",
+      "sha256": "bf9f539311e0436a9780e823cec44344259edf1f434eacb12057d3d3545a2503",
+      "source_frame": 2
+    },
+    {
+      "brow_lower_level": 2,
+      "duration_ms": 150,
+      "file": "frame_003.png",
+      "sha256": "bf9f539311e0436a9780e823cec44344259edf1f434eacb12057d3d3545a2503",
+      "source_frame": 3
+    },
+    {
+      "brow_lower_level": 1,
+      "duration_ms": 150,
+      "file": "frame_004.png",
+      "sha256": "fd75cb82ec89af5463b7daf312d6fcbcc328ade1af08332d4c61c2135a5110a0",
+      "source_frame": 4
+    },
+    {
+      "brow_lower_level": 0,
+      "duration_ms": 280,
+      "file": "frame_005.png",
+      "sha256": "9b4d953d662670bf09e9e1ccc1fc9e486c6e0a031e6efe8b02a6c148f5c15a06",
+      "source_frame": 5
+    }
+  ],
+  "limitations": [
+    "This is one approved Codex standard row, not a complete or installable pet atlas.",
+    "The current review pilot communicates focused inspection with the eyebrow micro-loop only; the earlier task-slip reading and nod remain future design-layer options.",
+    "The source does not replace assets/reimu/eating or modify the task-count runtime."
+  ],
+  "motion": {
+    "description": "fixed seated eating pose; only the complete image-right eyebrow and its immediate skin band lower uniformly by 1-2px and return; the original brow position is fully cleared with source skin so no residual line remains; eye interiors, eyelids, lashes, food, hands, body, tea, table and tatami remain fixed",
+    "source_frame_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "source_levels": [
+      0,
+      1,
+      2,
+      2,
+      1,
+      0
+    ]
+  },
+  "prototype": "review-v1-mother-locked-focused-brow",
+  "provenance": {
+    "harness_animation_id": "reimu_codex_v2_review_v1_focused_brow_loop",
+    "harness_plan_digest": "sha256:38e04c4b925ea0c6b836f8d7a31688a317c639ac0d1044a0c88abe4e8a66bb09",
+    "harness_source_sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe",
+    "harness_version": "0.7.0",
+    "pixel_policy": "nearest-neighbor 596x596 to 192x192; bottom-aligned at (0,16) in a transparent 192x208 cell",
+    "source_kind": "maintainer-provided source image; confirmed and authorized for this project"
+  },
+  "row_source_version": 1
+}

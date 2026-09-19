@@ -29,9 +29,23 @@ Local scaffold and persistent GPT handoff complete. The baseline is synchronized
 
 Output: a reviewed model sheet/specification, not a complete animation atlas.
 
+## Milestone 1.5 — task-count eating vertical slice
+
+- [x] Establish the data-driven six-state eating spec, task-count clamp and explicit static fallback.
+- [x] Confirm the fixed-pose task_2 chew: mother/base-locked pixels, open eyes, two subtle one-sided jaw/cheek pulses, no hand/food/body movement.
+- [x] Import the pinned 16-frame source and add a fail-closed `exact_frames` consumer mode.
+- [x] Validate repeated byte-identical no-publish task_2 builds through Sprite Harness with zero errors and warnings.
+- [x] Add dependency-free runtime tests for tier clamping, valid animation loading, semantic mismatch fallback and broken-frame fallback.
+- [x] With explicit production-asset authorization, preserve the old task_2 fallback as legacy, activate the approved neutral as `base.png`, rebuild/publish task_2, and rerun all repository tests.
+- [ ] Reuse the same manifest/validation/player structure for task_0 through task_5 while reporting missing true art explicitly.
+
 ## Milestone 2 — static Codex-compatible prototype
 
-- Produce original source art for the nine standard state rows.
+- [x] Approve and Harness-validate the first standard-row pilot: fixed-pose chewing for `running`, six 192×208 cells, with an independently validated 1536×208 M5 row export.
+- [x] Approve and Harness-validate the second standard-row pilot: fixed seated `idle` with a 1–2px loose-hair settle, six 192×208 cells, and an independently validated 1536×208 M5 row export.
+- [x] Approve and Harness-validate the third standard-row pilot: fixed seated `waiting` with a 1–3px image-right attentive eyebrow rise, six 192×208 cells, and an independently validated 1536×208 M5 row export.
+- [x] Approve and Harness-validate the fourth standard-row pilot: fixed seated `review` with a corrected single-line 1–2px image-right eyebrow lower, six 192×208 cells, and an independently validated 1536×208 M5 row export.
+- Produce original source art for the remaining five standard state rows.
 - Produce the 16 coherent look directions for local v2.
 - Assemble and validate a 1536×2288 transparent atlas.
 - Generate an installable `pet.json` with `spriteVersionNumber: 2`.

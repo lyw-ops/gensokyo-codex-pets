@@ -1,0 +1,154 @@
+{
+  "approval": {
+    "consumer_work": "maintainer authorized 2026-09-04",
+    "keyframes": "maintainer confirmed",
+    "loop": "maintainer confirmed",
+    "source_image": "maintainer selected and confirmed"
+  },
+  "base": {
+    "file": "base.png",
+    "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+  },
+  "canvas": {
+    "height": 596,
+    "width": 596
+  },
+  "character": "reimu",
+  "exact_frame_source_version": 1,
+  "frames": [
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_000.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_001.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 100,
+      "file": "frames/frame_002.png",
+      "sha256": "792e359604168a60a4c759144fecd7cc28770280b31c1bf476e1993ff9fe24af"
+    },
+    {
+      "chew_level": 2,
+      "duration_ms": 100,
+      "file": "frames/frame_003.png",
+      "sha256": "547501f124f1d993bc7149b927fb71a97f7550ed6e1b5b18d81ca2dc68c21278"
+    },
+    {
+      "chew_level": 3,
+      "duration_ms": 100,
+      "file": "frames/frame_004.png",
+      "sha256": "b9174427f6d0675353270e0a56c6c26175c64b3c520e9a8b766dd3535d59574b"
+    },
+    {
+      "chew_level": 2,
+      "duration_ms": 100,
+      "file": "frames/frame_005.png",
+      "sha256": "547501f124f1d993bc7149b927fb71a97f7550ed6e1b5b18d81ca2dc68c21278"
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 100,
+      "file": "frames/frame_006.png",
+      "sha256": "792e359604168a60a4c759144fecd7cc28770280b31c1bf476e1993ff9fe24af"
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_007.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 100,
+      "file": "frames/frame_008.png",
+      "sha256": "792e359604168a60a4c759144fecd7cc28770280b31c1bf476e1993ff9fe24af"
+    },
+    {
+      "chew_level": 2,
+      "duration_ms": 100,
+      "file": "frames/frame_009.png",
+      "sha256": "547501f124f1d993bc7149b927fb71a97f7550ed6e1b5b18d81ca2dc68c21278"
+    },
+    {
+      "chew_level": 3,
+      "duration_ms": 100,
+      "file": "frames/frame_010.png",
+      "sha256": "b9174427f6d0675353270e0a56c6c26175c64b3c520e9a8b766dd3535d59574b"
+    },
+    {
+      "chew_level": 2,
+      "duration_ms": 100,
+      "file": "frames/frame_011.png",
+      "sha256": "547501f124f1d993bc7149b927fb71a97f7550ed6e1b5b18d81ca2dc68c21278"
+    },
+    {
+      "chew_level": 1,
+      "duration_ms": 100,
+      "file": "frames/frame_012.png",
+      "sha256": "792e359604168a60a4c759144fecd7cc28770280b31c1bf476e1993ff9fe24af"
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_013.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_014.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "chew_level": 0,
+      "duration_ms": 100,
+      "file": "frames/frame_015.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    }
+  ],
+  "motion": {
+    "description": "two restrained one-sided jaw/cheek chewing pulses",
+    "dynamic_bbox_exclusive": [
+      314,
+      269,
+      347,
+      280
+    ],
+    "static": [
+      "rice ball",
+      "hands",
+      "sleeves",
+      "body",
+      "hair",
+      "neck",
+      "collar",
+      "table",
+      "eyes",
+      "mouth",
+      "mole"
+    ]
+  },
+  "playback": {
+    "fps": 10,
+    "frame_count": 16,
+    "loop": true
+  },
+  "prototype": "chew-v7-mother-locked",
+  "provenance": {
+    "harness_animation_id": "reimu_task2_chew_v7_mother_locked_loop",
+    "harness_plan_digest": "sha256:247bce2b043342810add830ef11083dbd052064ee84504e7f957350c877d992f",
+    "harness_source_sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe",
+    "harness_version": "0.7.0",
+    "mother_sha256": "761fa75b07b7f2af9a9b16988d9b8596df726e2bd6dd56ef98d194f9db1d84d1",
+    "pixel_policy": "exact 596x596 approved Harness frames; no resampling or repaint in consumer"
+  },
+  "state": "task_2",
+  "state_set": "eating"
+}

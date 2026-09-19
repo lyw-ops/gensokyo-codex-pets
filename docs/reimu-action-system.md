@@ -1,6 +1,244 @@
 # Reimu action system
 
-Status: **Milestone 0 behavior specification; no sprite production, no runtime implementation**
+Status: **Behavior specification with a partially implemented native runtime. Current installed-build and implementation evidence lives in `HANDOFF.md`; this document is the authoritative behavior design. The latest design decision below governs, and a design decision is not by itself an asset, runtime, installation, or visual-approval claim.**
+
+## Latest design decision — 2026-09-19: workload eating, idle onigiri, and an independent grabbed pose
+
+The maintainer reaffirmed the project's original central metaphor: **when Codex is
+actively working, Reimu is eating**. The number of concurrently active tasks selects
+the eating presentation through `ReimuFoodTier = min(activeTaskCount, 5)`. This
+supersedes any later wording that treated working as neutral standing or made eating
+only an idle activity. It does not make eating the source of task truth: the observer
+and task card remain authoritative, and animation never creates or changes work.
+
+The approved visual reference is
+[`docs/reference/reimu/eating_set_v1/eating-set-v1-sheet.png`](reference/reimu/eating_set_v1/eating-set-v1-sheet.png).
+It is a composition and emotion reference, not an instruction to copy detached effects
+into every runtime frame. Read left-to-right, top-to-bottom:
+
+| Active tasks | Food tier | Work presentation |
+| ---: | ---: | --- |
+| 0 | 0 | No work meal. The empty-table, bored/slouch image informs tier-0 idle actions; the normal base may remain the approved standing blink. |
+| 1 | 1 | One onigiri; touched and tearful, eating earnestly. |
+| 2 | 2 | Two onigiri plus tea; residual wetness, visibly more settled than tier 1. |
+| 3 | 3 | Rice and a modest side dish; content, no tears. |
+| 4 | 4 | A richer noodle/dumpling meal; clearly delighted and more energetic. |
+| 5+ | 5 | Capped banquet; laughing while crying from delight. More tasks never create a seventh tier. |
+
+All tiers share one `work_eating` behavior family. The body construction, table,
+anchor, and reusable bite vocabulary should be shared; table-food layers and a small
+expression set carry the tier identity. A task-count change swaps the tier composition
+at a safe loop boundary without restarting the FSM node. Hearts, sparkles, sweat drops,
+and steam in the concept sheet are optional mood cues, not mandatory detached sprite
+effects; prefer face, pose, timing, and meal richness at actual pet size.
+
+Eating an onigiri also remains a separate idle behavior:
+
+- `idle_onigiri` is a bounded autonomous one-shot available only while the observed
+  base is idle. It uses a neutral or quietly pleased expression, not tier 1's work-linked
+  tears, so an idle snack cannot be mistaken for one active task.
+- `feed_onigiri` is the design name for the existing user-requested/manual feeding episode
+  (`feed` in the current native runtime). It may share the
+  same core clip with `idle_onigiri`, but the trigger, cooldown, logging, and interruption
+  reason remain distinct.
+- Neither action changes `activeTaskCount`. If real work begins during an idle snack,
+  the runtime changes to `work_eating[min(activeTaskCount, 5)]` at the nearest safe
+  frame; no snack or work action is queued for replay.
+
+Dragging has its own native action and artwork. `drag_float` means **caught and held by
+the pointer**, not ordinary standing, eating, or voluntary left/right flight:
+
+- the low table, tatami, and food disappear for the held pose;
+- feet leave the baseline while sleeves, hair, skirt, and bow hang with restrained
+  downward follow-through;
+- the face reads briefly surprised and then mildly displeased, never limp or panicked;
+- pointer motion may produce a small lag/sway, but it must not select or reuse
+  `fly_low_left` / `fly_low_right` artwork;
+- release plays the independent `drag_land` transition and then resolves the latest
+  base. A task-count or status change while held updates that return target; the runtime
+  never restores stale pre-drag food or state.
+
+The Codex static v2 atlas may still use `running-left` and `running-right` for its own
+standard directional contract. That compatibility mapping is separate from the native
+desktop runtime's required grabbed pose and must not be used to claim the independent
+native interaction is drawn or implemented.
+
+The intended presentation selector is therefore:
+
+```text
+failed / critical state  -> fail_fumble
+pointer held             -> drag_float -> drag_land -> latest base
+explicit user action     -> click reaction or feed_onigiri -> latest base
+working                  -> work_eating[min(activeTaskCount, 5)]
+idle                     -> idle base + eligible autonomous actions, including idle_onigiri
+```
+
+This section freezes behavior semantics only. `idle_onigiri` and the independent
+caught/landing art still require authored assets, Harness validation, native integration,
+normal-size visual QA, and explicit approval before they can be reported as production.
+
+## Current implementation — 2026-09-16: declarative action registry and the chewing pause
+
+The action layer is now data instead of branches, and the first new action since 1.3 ships on it.
+Nothing was drawn for this round: the whole app still contains eleven PNGs (standing `base`,
+`poses/closed`, `poses/half`; seven unique eating frames; one annoyed reaction).
+
+**P0 — infrastructure.** `PetBehavior` gained four pieces the catalog below needs:
+
+- `ActionSpec` declares duration, priority, caption, artwork, rest, lock, reaction art, frame
+  program and default continuation. Adding an action is one enum case plus one table row; the
+  presentation path no longer switches on action names.
+- `FramePlan` (`still` / `table` / `ramp` / `loop`) makes frame selection data. The existing
+  actions' hardcoded index tables were moved into it unchanged.
+- Two-level rest: `cooldown` is how long an action waits for its own repeat, `globalRest` is the
+  pacing floor between any two self-started behaviors. The meal keeps 180 s for both, so a future
+  cheap beat can rest briefly for everyone while still waiting a long time for itself.
+- A weighted pool (`PoolEntry`) with per-entry eligibility, plus explicit continuations: a pool
+  entry may declare `then`, and only a *completed* action continues — every interruption returns
+  to the base. Held actions (`duration: nil` with `maxHold`) are supported for the future
+  table-slouch and sleep stages.
+
+`ClipSpec.registry` in `main.swift` does the same for artwork: canvas side, frame count, fps,
+manifest identity, Info.plist digest keys, frame-file resolver and window placement are one row
+per clip. The loader, the placement function, hit testing and the drawing path all read the
+registry, so a third clip is a row plus a `PetArtwork` case rather than another ternary.
+
+**P1 — `pause_chew`.** The approved autonomous meal keeps its exact pacing (60 s quiet, 25 %,
+30–45 s retry, 180 s rest) and its exact random draw count and order. The 25 % is split into
+15 % plain meal and 10 % meal that continues into a two-second chewing pause: chewing slows to
+two pulses (eating frames 4-7), the gaze drifts behind half-lidded eyes (frame 27, held 0.6 s),
+then she looks up (frame 31) and settles (frame 0). The fully closed eye (frame 29) is
+deliberately unused — this is a drift, not a blink. The 180 s rest is measured from the end of
+the whole episode, so the pause does not make her eat sooner. Because the continuation reuses
+the roll that already started the meal, it costs no extra random draw.
+
+Validation: 99 behavior checks (84 previous ones pass verbatim), 29 native checks, 5 standing,
+3 reaction, 28 status contract, 14 bridge tests, 74 builder tests and the repository gate.
+Version 1.8 / build 10 is buildable; the installed app was not replaced in this round.
+
+**Re-ranked, not done.** `look_at_food` and a seated blink were expected to be free, but the app
+loads only `688×688 reference_onigiri_example/eat_blink` and `1254×1254 neutral_standing_v1/
+idle_blink`, while the layered rig and the `eating/task_2` chew-v9 sequence are `596×596`. Those
+two tracks have never been connected, so both actions need the canvas reconciliation that the
+standing/seated transition also needs — they are not cheap runtime-only wins.
+
+## Current app — 2026-09-07: one merged 1.7 build with an observation log
+
+The user asked to keep a single 灵梦 app and merge the features, so the preview identity was
+rebuilt under the installed identity as 1.7/build 9 at `/Users/lyuyuwei/Applications/灵梦桌宠.app`.
+1.0 → 1.7 is one linear source lineage, so no archived build held a behavior 1.7 lacks; 1.3's
+work-time endless eating had already been replaced by the approved standing default and bounded
+idle meal, and was not restored. Seventeen historical bundles moved to
+`.codex/artifacts/reimu-app-archive-20260907/` with a manifest and a restore script; nothing was
+deleted. Resources are byte-identical to the approved 1.6 preview and a strict superset of 1.3's.
+
+The behavior rules below are unchanged. What is new is observation only: `PetBehavior.onTrace`
+(nil by default) plus `PetLog` append one JSON object per line to
+`~/Library/Logs/ReimuPet/behavior.jsonl` for base changes, action start/end with reason, the real
+`meal_attempt` roll and retry interval, gates, observed work snapshots and user input. Random draw
+count and order are unchanged and all 66 approved behavior checks still pass verbatim. The menu
+gained a real autonomy countdown and a reveal-log item; opening the menu is itself a suppressing
+gate that restarts the 60-second quiet interval, so the log is the non-intrusive instrument.
+
+Real-event probes (read-only, nothing injected): `working`, `round_ended`, `interrupted` and
+`closed` are confirmed by real hook events; `needs_input` and `failed` have never been driven by
+one, because they need `PermissionRequest` / matcher-gated `Notification` / `Elicitation` and
+`StopFailure`, of which zero have ever arrived. `PostToolUseFailure` does arrive but observer.py
+maps it to `working` on purpose. 84 behavior and 29 native checks pass.
+
+## Superseded native implementation — 2026-09-07: approved bounded idle meal
+
+The user approved the 8142 default `cut/`, aligned placement and 8-second meal, then
+requested implementation and updated handoffs. Final preview 1.6/build 8 lives under
+`.codex/artifacts/reimu-native-idle-meal-20260907-final/`; installed 1.3 is preserved.
+Only observed `idle` is eligible after 60 quiet seconds. Each attempt has 25% chance;
+a skipped attempt waits 30–45 seconds. Two original four-second cycles play once,
+then cut to open-eye standing. Completion or interruption imposes 180 seconds before
+another automatic meal, combined with 60 seconds of renewed quiet after interaction.
+These deadlines use a process-local monotonic clock; restart begins a fresh 60-second
+quiet period. There is no catch-up queue or work-count mutation.
+
+Non-idle work status, clicks and dragging preempt the automatic meal. Pause, reduced
+motion, sleep, pointer-held and menu-open gates suppress autonomy and reset eligibility
+on resume; asset fallback also disables autonomy. Manual feeding remains four seconds;
+annoyed art/lock, failure priority and latest-state restoration remain intact.
+
+Whole-image uniform placement follows the approved 596 px Harness preview; alpha hit
+testing uses the same drawing rectangle. The original PNG bytes are unchanged.
+AppKit resampling is not claimed pixel-identical to the Pillow preview. This is a
+whole-pose cut with aligned shoe/skirt-shadow support edges, not authored sit/stand
+motion or anatomical layers. 66 behavior and 25 native checks pass; long-term real idle
+random playback is still a user experience check. No probes or monitoring were added.
+All sections below preserve the earlier design/review history; pending wording and
+older versions there do not supersede this section or the top of HANDOFF.md.
+
+## Historical offline preview — 2026-09-07: bounded meal and aligned pose switching
+
+The next stage now has a local review page at http://127.0.0.1:8142/ (Harness
+`build/reimu-idle-meal-transition-20260907-v1/`). Two existing 4-second eating cycles
+form an 8-second meal inside a non-looping 12-second preview. Standing shoes and the
+seated skirt/shadow support edge are aligned on a common 596 px canvas with uniform
+scaling. `cut/` and `fade/` are the current candidates; fade is a 200 ms single-pose
+fade-out/fade-in, not authored sit/stand motion. The overlapping `dissolve/` candidate
+was visually rejected for double faces despite passing structural checks.
+
+Sizing, duration and transition selection await user review before native integration.
+A schedule is only proposed (60 seconds quiet idle, 30–45 second attempts, 25 percent
+chance, at least 180 seconds cooldown after a meal). No scheduler, work receiver,
+production snapshot, native 1.5 package or installed 1.3 was changed by this preview.
+
+## Historical native integration — 2026-09-07: approved standing default
+
+The user explicitly approved the standing blink v1 after the light/dark, 596/160 px
+review. Separate native preview 1.5/build 7 now uses the original standing loop for
+working/observed idle/round-ended states and the open pose for waiting/failure/unknown
+states. The real status card remains independent. Normal clicks blink in standing;
+drag/release hold the standing image. Manual feeding plays the existing 4-second clip
+once, then resolves the latest state back to standing. The reviewed seated annoyed art
+and its 1.2-second lock remain, with existing failure/cooldown/reduced-motion rules.
+
+The old continuous work-eating loop and automatic chewing pause are removed from this
+preview. Autonomous idle meals are not enabled yet. Standing/seated reactions currently
+switch directly between approved images; authored transitions and common foot placement
+need a separate preview. The installed 1.3, receiver, tier policy and design registry
+remain unchanged. The catalog below is still a specification, not a runtime inventory.
+
+## Historical decision — 2026-09-07: eating as one idle activity
+
+This section records why bounded idle eating was introduced. Its claim that eating was
+only an idle activity is superseded by the 2026-09-19 decision above: workload eating
+remains the working base, while the idle onigiri episode remains an additional action.
+
+The user decided: “可以，我打算把灵梦吃饭喂食这一版本做成挂机动作之一”.
+The existing reviewed onigiri/eating/feeding presentation becomes one activity
+in Reimu's future idle repertoire. The selected natural standing pose with gentle
+blinking is the intended default idle base.
+
+- **Autonomous idle meal:** occasionally play a bounded eating episode during
+  eligible idle time, then resolve the latest base state. Most idle time remains
+  quiet standing. Frequency and episode length will be tuned in a dedicated preview.
+- **Manual feeding:** retain the right-click feeding entry and the reviewed eating
+  clip. Feeding can request the activity without waiting for the idle scheduler,
+  subject to the existing input, failure, pause and reduced-motion rules.
+- **Separate meaning from appearance:** eating may occur without an active task.
+  Real work status continues to come from the observer and the task card. Starting
+  or finishing a meal never changes task counts, invents work, or implies completion.
+- **Preserve responsiveness:** no queued meal spam or repeated restart on status
+  updates. Failure, drag and existing transient arbitration still apply. At the end,
+  use the latest state, returning to standing only when that state calls for idle.
+- **Reuse approved art:** preserve the current 40-frame eating clip, feeding and
+  annoyed-reaction assets. Standing-to-seated placement and the return transition
+  need a later visual preview; the present art does not establish a sit-down/stand-up
+  animation or a shared anatomical layer rig.
+
+This is an accepted design direction, not an installed behavior change. Native 1.3
+retains its current work-driven eating until integration. The historical
+`work_eating` / `eat_onigiri` mappings and tier restrictions below and in
+`actions.json` describe the earlier workload/static-atlas design; they must not be
+used to forbid idle eating in the new native design. No `ReimuFoodTier` formula,
+event protocol, runtime registry or static atlas is changed by this decision.
+Standing-blink visual approval and the staged art workflow remain as recorded in
+the latest handoff.
 
 This document turns Reimu from a static, task-count-driven table display into a character with observable personality. It defines the behavior architecture, the finite state machine, the full action catalog, and the boundary between what the current Codex pet contract can express and what belongs to a future extended runtime.
 
@@ -74,6 +312,7 @@ VisualState = CharacterBehavior(FSM node) × ReimuFoodTier(0…5)
 
 - `ReimuFoodTier = 0 | 1 | 2 | 3 | 4 | 5` stays exactly as defined in [workload-food-system.md](workload-food-system.md): tiers `0`–`4` are exact counts, `5` is the visual cap for five or more. No named bands, no ranges.
 - The tier is a **parameter** of a behavior, not a behavior. `work_eating` at tier 1 and tier 5 is the same FSM node with a different table composition and expression overlay.
+- Active work selects `work_eating` for tiers 1–5. Tier 0 is not a work loop: it selects the idle base and its autonomous pool. `idle_onigiri` may still play there as a bounded snack without inventing a task.
 - Behaviors declare `foodTiers`, the tiers in which they may fire. Example: `idle_table_slouch` and `idle_sweep` exist only at tier 0; `happy_eat` only at tiers 3–5.
 - When the tier changes, the FSM node does not reset; only the composition layer swaps (with the debounce already specified in the workload document).
 
@@ -154,7 +393,7 @@ The scheduler decides what Reimu does *on her own* while a base state holds.
 | single click | `react_notice` | Sudden awareness: one blink, slight head lift. |
 | double click | `react_poke` | Small frown plus slight lean back — dry displeasure, not exaggerated anime shock. |
 | ≥4 rapid clicks | `react_annoyed` | Openly impatient; raises an ofuda or gohei as a warning. Never attacks; returns to the current base state. |
-| drag | `drag_float` | She can fly, so no limp dangling: slight lift, sleeves and bow trailing down, feet off the baseline, mildly puzzled at most. |
+| drag | `drag_float` | Independent caught/held pose: table and food disappear, feet leave the baseline, clothes and hair hang with restrained follow-through, and pointer motion adds at most a small lag/sway. Do not reuse voluntary flight art. |
 | release | `drag_land` | Gentle settle back to the table edge; no bounce physics. |
 
 ## 8. Workload states and the locked emotion progression
@@ -178,15 +417,15 @@ Growth restraint: tier 1→2 and 2→3 are small steps in dish variety and occup
 
 | Codex row | Action | Notes |
 | --- | --- | --- |
-| `idle` (row 0) | `idle_relaxed` (+ a folded-in `idle_tea` sip) | The 6-frame row is a composed micro-sequence: breathe, blink, one small sip, settle. Frame 0 is the reduced-motion still. |
+| `idle` (row 0) | `idle_relaxed` | The approved 6-frame pilot keeps the fixed seated pose and open eyes; only the image-left loose hair curl settles by 1–2 px and returns. Frame 0 is the reduced-motion still. Blink, breathing and the earlier tea-sip idea remain future design options, not current pixels. |
 | `running-right` (1) | `fly_low_right` | Low-altitude flight, sleeves back, bow readable. |
 | `running-left` (2) | `fly_low_left` | Mirror only if bow/sleeve/prop handedness survives. |
 | `waving` (3) | `greet_wave` | One controlled hand raise. |
 | `jumping` (4) | `jump_float` | Brief float-up; optional yin-yang orb touch. |
 | `failed` (5) | `fail_fumble` | Comic mishap; no red X, question marks, text, or floating icons. |
-| `waiting` (6) | `wait_chin_hand` | Chin in hand, onigiri in the other, eyes asking the user. |
-| `running` (7) | `work_eating` (+ `eat_onigiri` beat) | Glance at task slip → bite → glance back. Never typing. |
-| `review` (8) | `review_task_slip` | Reads the slip, small nod; "done, let me check", not "stuck". |
+| `waiting` (6) | `wait_chin_hand` | The approved current row keeps the fixed seated eating pose and open eyes; only the image-right eyebrow rises 1–3px and returns as an attentive cue. The chin-in-hand pose and eye-flick remain future design-layer options. |
+| `running` (7) | `work_eating` (+ `eat_onigiri` beat) | Tier-appropriate eating beat; task metadata remains in the external card. Never typing. |
+| `review` (8) | `review_task_slip` | The approved current row keeps the fixed seated eating pose and open eyes; only the complete image-right eyebrow lowers uniformly by 1–2px and returns as a focused cue. The original brow is fully cleared, avoiding the rejected double-line artifact. Task-slip reading and nod remain future design-layer options. |
 | look rows (9–10) | `look_cursor` | 16 clockwise directions; eyes lead. |
 
 The static atlas carries exactly one appearance per row; multiple idle behaviors are compressed into the composed idle sequence. The sheet cannot switch food tiers live — tier variants remain design-layer source compositions until a supported runtime exists.
@@ -205,6 +444,7 @@ Full field-level definitions (trigger, tiers, duration, interruptibility, priori
 | --- | --- | --- | :---: | --- | --- | --- |
 | `idle_relaxed` | 放松坐姿 | base | ✓ | 0–5 | `idle` | specified |
 | `idle_tea` | 喝茶 | autonomous | – | 0–5 | folded into `idle` | specified |
+| `idle_onigiri` | 挂机吃饭团 | autonomous | – | 0 | — | specified |
 | `idle_cloudwatch` | 看天发呆 | autonomous | – | 0–2 | — | specified |
 | `idle_table_slouch` | 趴桌撑脸 | autonomous | ✓ | 0 | — | specified |
 | `idle_sweep` | 扫地（很快放弃） | autonomous | – | 0 | — | specified |
@@ -218,8 +458,9 @@ Full field-level definitions (trigger, tiers, duration, interruptibility, priori
 | `react_notice` | 注意到用户 | interaction | – | 0–5 | — | specified |
 | `react_poke` | 被戳 | interaction | – | 0–5 | — | specified |
 | `react_annoyed` | 不耐烦警告 | interaction | – | 0–5 | — | specified |
-| `drag_float` | 拖拽悬浮 | interaction | ✓ | 0–5 | `running-left/right` | specified |
+| `drag_float` | 被抓取悬浮 | interaction | ✓ | 0–5 | — | specified |
 | `drag_land` | 落地 | interaction | – | 0–5 | — | specified |
+| `feed_onigiri` | 主动喂饭团 | interaction | – | 0–5 | — | specified |
 | `incident_notice` | 察觉异变 | incident | – | 0–5 | — | design-only |
 | `incident_ready` | 起身备战 | incident | – | 0–5 | — | design-only |
 | `incident_fly` | 低空飞离 | incident | – | 0–5 | — | design-only |

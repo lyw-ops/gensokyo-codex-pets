@@ -3,22 +3,100 @@
   "character": "reimu",
   "frames": [
     {
-      "duration_ms": 125,
+      "duration_ms": 100,
       "file": "frames/frame_000.png",
-      "sha256": "d3139f4ecc428235b4bfd3d227be760cb151d7d3da126f78cfa0923b5ec7ee4d"
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_001.png",
+      "sha256": "9f68dafa729b7923d1d3b536c16b2ce1524c1ecff3816cf8e5030badd4811144"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_002.png",
+      "sha256": "57bf28a96b1680972ace09066f199f22b9d56a6e978cc7f190d6861ecaf6ada8"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_003.png",
+      "sha256": "e203b7adf1064621fab836ec7db7e36ece1523f087fef53f7b03c819b7109d74"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_004.png",
+      "sha256": "5ba18281cae838f0ac899318611fe241fbf7b8ae3942a56724d14e852e58c228"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_005.png",
+      "sha256": "196d1d9e81a442f957c8f6071591df74bbe19d77082bc2af551cc1823e047cdc"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_006.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_007.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_008.png",
+      "sha256": "9f68dafa729b7923d1d3b536c16b2ce1524c1ecff3816cf8e5030badd4811144"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_009.png",
+      "sha256": "57bf28a96b1680972ace09066f199f22b9d56a6e978cc7f190d6861ecaf6ada8"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_010.png",
+      "sha256": "e203b7adf1064621fab836ec7db7e36ece1523f087fef53f7b03c819b7109d74"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_011.png",
+      "sha256": "5ba18281cae838f0ac899318611fe241fbf7b8ae3942a56724d14e852e58c228"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_012.png",
+      "sha256": "196d1d9e81a442f957c8f6071591df74bbe19d77082bc2af551cc1823e047cdc"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_013.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_014.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
+    },
+    {
+      "duration_ms": 100,
+      "file": "frames/frame_015.png",
+      "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
     }
   ],
   "manifest_version": 1,
   "playback": {
-    "fps": 8.0,
+    "fps": 10.0,
     "loop": true
   },
   "provenance": {
     "builder": "tools/build_reimu_animations.py",
+    "frame_source": "pets/reimu/animations/eating/sources/task_2-chew-v9/source.json",
+    "frame_source_sha256": "81aa07c5503150f634a0b6e267f9621147f6f6a275e25b79b6c41e7ef1d447de",
     "harness_version": "0.7.0",
     "pipeline": "sprite-harness",
-    "plan_digest": "sha256:44b79f8eea1a47dd852473b5b289585e0877580dcc969ae52552a18e7bf6e0b3",
-    "render_mode": "full",
+    "plan_digest": "sha256:44a06825c26025b4e9123786a594159d46f9b63a4e74b1609d61d42ffdeeb6be",
+    "render_mode": "external",
+    "source_mode": "approved_exact_frames",
     "spec": "pets/reimu/animations/eating/animation-set.json"
   },
   "reduced_motion": {
@@ -27,7 +105,7 @@
   },
   "source": {
     "file": "base.png",
-    "sha256": "d3139f4ecc428235b4bfd3d227be760cb151d7d3da126f78cfa0923b5ec7ee4d"
+    "sha256": "0251947e0ca94f0ba0fa4b724d37fac242c86ba4de9591bb558c226ad4904cfe"
   },
   "state": "task_2",
   "state_set": "eating"
