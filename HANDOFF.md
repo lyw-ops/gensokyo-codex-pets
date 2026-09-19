@@ -1,5 +1,43 @@
 # GPT project handoff / GPT 项目交接
 
+## 2026-09-20 task_5 原生静态切片源码收口（未安装）
+
+用户查看Harness `build/reimu-tier5-runtime-v1/runtime-preview/runtime-review.gif`、
+`review-sheet.png`及`qa/native-size-review.png`后回复“可以，收口后接着做”。本次批准绑定
+task_5原图SHA-256 `ffd3752c4cdf333a88dc70e766dc4fbdf584662bb242365b3a3ff8a2860f8342`
+及已展示的原生大小、摆放、支撑/裁切、单帧静态保持、Tier2/3/4/5切换、5及以上封顶选择、
+`needs_input`立即抢占和按最新count=4恢复。它不批准未制作的多帧吃饭动画、额外过渡或安装。
+
+`task_5-static-v1/source.json`只更新批准说明，图像、帧绑定、播放声明和来源不变；批准后
+manifest SHA-256为`0b48b3730b2b26e6043af5a229bd0033fc6b97615e1d67dc14a4897cc4fd9a3f`。
+`build.py --work-tier-5`不再强制preview，但仍严格校验manifest与图像摘要。当前尚未安装应用、
+创建tag或发布安装包；本次源码收口不改变下面技术预览所绑定的原生证据。
+
+## 2026-09-20 task_5 原生静态垂直切片技术预览完成（等待视觉确认）
+
+当前未提交工作区新增独立`work_eating_task_5`身份和
+`pets/reimu/animations/eating/sources/task_5-static-v1/`资源包。它通过唯一
+`ReimuFoodTier = min(activeTaskCount, 5)`策略选择：真实`working`且任务数为5或以上时
+显示Tier5；没有新增第二处`>= 5`判断。源图、运行时base和唯一帧均保持SHA-256
+`ffd3752c4cdf333a88dc70e766dc4fbdf584662bb242365b3a3ff8a2860f8342`，没有重绘、分割、
+缩放或整场摇动。这仍是125ms声明的一帧静态保持，不是完成的吃面动画。
+
+Tier2进入Tier5等待当前1.6秒咀嚼循环边界；Tier3/4/5静帧离开不增加人为等待。
+failure、needs_input、点击、拖动和暂停立即抢占，恢复使用最新任务数。Tier5缺失、帧损坏、
+manifest或摘要不匹配只把Tier5降级为站姿，不影响Tier2/3/4、站姿、手动吃饭或托腮。
+`desktop/macos/build.py --work-tier-5`在视觉批准前强制`--preview`。
+
+Harness独立1.12/build14预览位于`build/reimu-tier5-runtime-v1/`，隔离snapshot覆盖
+Tier2/3/4、count=5、count=9仍封顶Tier5、`needs_input`抢占及最新count=4恢复；5次Tier5
+捕获逐字节相同。190项Swift行为、36项原生AppKit、125项Consumer工具、14项bridge、
+31项状态、Tier2/3/4/5各4项资源加载/隔离回退、3项表情、5项站姿与仓库门禁通过。
+MacOSX26.5.sdk全新编译、稳定ZIP全新解包及严格深层签名通过；没有读取真实provider、安装、
+commit、push或发布。
+
+原生160pt测量中Tier5可见框约119.5×154.5pt，底部支撑余量2.5pt且无裁切；Tier2/3/4/5
+同尺度对照图已生成。当前实现、技术和Consumer接入通过，Tier5原生大小、摆放、跨档占地、
+静态保持及展示的切换仍等待用户确认。
+
 ## 2026-09-20 task_4 原生静态切片源码收口发布（未安装）
 
 本次源码提交发布已获视觉批准的`work_eating_task_4`垂直切片、独立

@@ -117,6 +117,21 @@ check("missing task_4 runtime asset degrades explicitly to standing") {
     return p.artwork == .standing && p.node == "work_fallback_tier_4"
 }
 
+let task5 = PetBehavior(now:0)
+task5.setWorkStatus("working",activeTaskCount:5,now:0)
+check("working plus five tasks enters the explicit capped task_5 runtime identity") {
+    let p=task5.presentation(now:0,availableWorkTiers:[2,3,4,5])
+    return p.node == "work_eating_task_5" && p.artwork == .workEatingTier5 && p.frame == 0 && !p.wantsAnimation
+}
+check("task_5 remains an honest static hold without mutating observed task truth") {
+    let outputs=[0.0,0.125,1.0,10.0].map{task5.presentation(now:$0,availableWorkTiers:[2,3,4,5])}
+    return outputs.allSatisfy{$0.frame == 0 && !$0.wantsAnimation} && task5.base == "working" && task5.activeTaskCount == 5
+}
+check("missing task_5 runtime asset degrades explicitly to standing") {
+    let p=task5.presentation(now:1.0,availableWorkTiers:[2,3,4])
+    return p.artwork == .standing && p.node == "work_fallback_tier_5"
+}
+
 let enterTier2=PetBehavior(now:0)
 enterTier2.setWorkStatus("working",activeTaskCount:1,now:0)
 enterTier2.setWorkStatus("working",activeTaskCount:2,now:1)
@@ -138,6 +153,13 @@ check("two to four tasks finishes the current chew loop before selecting task_4"
     tier2To4.presentation(now:1.59,availableWorkTiers:[2,3,4]).artwork == .workEatingTier2 &&
     tier2To4.presentation(now:1.6,availableWorkTiers:[2,3,4]).artwork == .workEatingTier4
 }
+let tier2To5=PetBehavior(now:0)
+tier2To5.setWorkStatus("working",activeTaskCount:2,now:0)
+tier2To5.setWorkStatus("working",activeTaskCount:8,now:0.2)
+check("two to five-plus tasks finishes the current chew loop before selecting task_5") {
+    tier2To5.presentation(now:1.59,availableWorkTiers:[2,3,4,5]).artwork == .workEatingTier2 &&
+    tier2To5.presentation(now:1.6,availableWorkTiers:[2,3,4,5]).artwork == .workEatingTier5
+}
 let leaveTier3=PetBehavior(now:0)
 leaveTier3.setWorkStatus("working",activeTaskCount:3,now:0)
 leaveTier3.setWorkStatus("working",activeTaskCount:2,now:0.2)
@@ -150,22 +172,28 @@ leaveTier4.setWorkStatus("working",activeTaskCount:3,now:0.2)
 check("four to three tasks can leave the static hold at once") {
     let p=leaveTier4.presentation(now:0.2,availableWorkTiers:[2,3,4]); return p.artwork == .workEatingTier3 && p.frame == 0
 }
+let leaveTier5=PetBehavior(now:0)
+leaveTier5.setWorkStatus("working",activeTaskCount:7,now:0)
+leaveTier5.setWorkStatus("working",activeTaskCount:4,now:0.2)
+check("five-plus to four tasks can leave the static hold at once") {
+    let p=leaveTier5.presentation(now:0.2,availableWorkTiers:[2,3,4,5]); return p.artwork == .workEatingTier4 && p.frame == 0
+}
 let leaveWorking=PetBehavior(now:0)
 leaveWorking.setWorkStatus("working",activeTaskCount:2,now:0)
 leaveWorking.setWorkStatus("idle",activeTaskCount:0,now:0.2)
 check("two to zero tasks leaves working immediately with no stale task_2 frame") {
     let p=leaveWorking.presentation(now:0.21); return p.artwork == .standing && p.node == "idle_relaxed"
 }
-for tier in [1,5] {
+for tier in [1] {
     let m=PetBehavior(now:0);m.setWorkStatus("working",activeTaskCount:tier,now:0)
     check("unfinished tier \(tier) never maps to task_2") {
         let p=m.presentation(now:0.5);return p.artwork == .standing && p.node == "work_fallback_tier_\(tier)"
     }
 }
 let capped=PetBehavior(now:0);capped.setWorkStatus("working",activeTaskCount:9,now:0)
-check("five-plus tasks stays capped at honest tier-5 fallback and never selects task_4") {
-    let p=capped.presentation(now:1,availableWorkTiers:[2,3,4])
-    return capped.displayedFoodTier == 5 && p.node == "work_fallback_tier_5" && p.artwork == .standing
+check("five-plus tasks stays capped at the explicit tier-5 identity") {
+    let p=capped.presentation(now:1,availableWorkTiers:[2,3,4,5])
+    return capped.activeTaskCount == 9 && capped.displayedFoodTier == 5 && p.node == "work_eating_task_5" && p.artwork == .workEatingTier5
 }
 
 let clickTier=PetBehavior(now:0);clickTier.setWorkStatus("working",activeTaskCount:2,now:0);clickTier.click(now:0.2)
@@ -189,6 +217,18 @@ for state in ["failed","needs_input"] {
 let reducedTier4=PetBehavior(now:0);reducedTier4.setWorkStatus("working",activeTaskCount:4,now:0)
 check("reduced motion holds the same task_4 still") {
     let p=reducedTier4.presentation(now:3,motionAllowed:false,availableWorkTiers:[2,3,4]);return p.artwork == .workEatingTier4 && p.frame == 0 && !p.wantsAnimation
+}
+let clickTier5=PetBehavior(now:0);clickTier5.setWorkStatus("working",activeTaskCount:9,now:0);clickTier5.click(now:0.2)
+check("click immediately preempts task_5") { clickTier5.presentation(now:0.21,availableWorkTiers:[2,3,4,5]).node == "react_notice" }
+clickTier5.setWorkStatus("working",activeTaskCount:4,now:0.3)
+check("click recovery leaves task_5 for the newest exact count") { clickTier5.presentation(now:0.8,availableWorkTiers:[2,3,4,5]).artwork == .workEatingTier4 }
+for state in ["failed","needs_input"] {
+    let m=PetBehavior(now:0);m.setWorkStatus("working",activeTaskCount:12,now:0);m.setWorkStatus(state,activeTaskCount:state == "failed" ? 0 : 1,now:0.2)
+    check("\(state) immediately preempts task_5") { let p=m.presentation(now:0.21,availableWorkTiers:[2,3,4,5]);return p.artwork == .standing && p.node == state }
+}
+let reducedTier5=PetBehavior(now:0);reducedTier5.setWorkStatus("working",activeTaskCount:6,now:0)
+check("reduced motion holds the same task_5 still") {
+    let p=reducedTier5.presentation(now:3,motionAllowed:false,availableWorkTiers:[2,3,4,5]);return p.artwork == .workEatingTier5 && p.frame == 0 && !p.wantsAnimation
 }
 for state in ["failed","needs_input"] {
     let m=PetBehavior(now:0);m.setWorkStatus("working",activeTaskCount:2,now:0);m.setWorkStatus(state,activeTaskCount:state == "failed" ? 0 : 1,now:0.2)

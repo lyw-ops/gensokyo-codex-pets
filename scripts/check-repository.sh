@@ -53,6 +53,7 @@ required_files=(
   desktop/macos/test_work_tier2.py
   desktop/macos/test_work_tier3.py
   desktop/macos/test_work_tier4.py
+  desktop/macos/test_work_tier5.py
   pets/reimu/animations/eating/animation-set.json
   pets/reimu/animations/eating/sources/task_2-chew-v7/source.json
   pets/reimu/animations/eating/sources/task_2-chew-v7/base.png
@@ -66,6 +67,10 @@ required_files=(
   pets/reimu/animations/eating/sources/task_4-static-v1/README.md
   pets/reimu/animations/eating/sources/task_4-static-v1/base.png
   pets/reimu/animations/eating/sources/task_4-static-v1/frames/frame_000.png
+  pets/reimu/animations/eating/sources/task_5-static-v1/source.json
+  pets/reimu/animations/eating/sources/task_5-static-v1/README.md
+  pets/reimu/animations/eating/sources/task_5-static-v1/base.png
+  pets/reimu/animations/eating/sources/task_5-static-v1/frames/frame_000.png
   docs/sprite-harness-integration.md
   docs/reimu-layered-assets-v1.md
   docs/task-2-layer-asset-intake.md
