@@ -182,6 +182,14 @@ struct ClipSpec {
                  baseKey:"PetWorkTier3BaseSHA256",manifestKey:"PetWorkTier3ManifestSHA256",
                  placement:.full,supportEdge:585.0/596,
                  frameFile:{ _ in "frames/frame_000.png" })
+    ]) + (Bundle.main.object(forInfoDictionaryKey:"PetWorkTier4ManifestSHA256") == nil ? [] : [
+        // Tier 4 is also one immutable Eating Set drawing. It stays a static native hold;
+        // the flattened ramen/table/tatami scene must never be moved to imitate chewing.
+        ClipSpec(artwork:.workEatingTier4,directory:"WorkEatingTier4",option:"--work-tier-4-root",
+                 side:596,frameCount:1,fps:8,stateSet:"eating",state:"task_4",
+                 baseKey:"PetWorkTier4BaseSHA256",manifestKey:"PetWorkTier4ManifestSHA256",
+                 placement:.full,supportEdge:586.0/596,
+                 frameFile:{ _ in "frames/frame_000.png" })
     ]) + (Bundle.main.object(forInfoDictionaryKey:"PetSleepManifestSHA256") == nil ? [] : [
         ClipSpec(artwork:.sleeping,directory:"Sleep",option:"--sleep-root",
                  side:1254,frameCount:sleepChainPreview ? 5 : 1,fps:sleepChainPreview ? 5 : 1,
@@ -390,6 +398,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
         var result = Set<Int>()
         if clips.contains(.workEatingTier2) && clips.isVerified(.workEatingTier2) { result.insert(2) }
         if clips.contains(.workEatingTier3) && clips.isVerified(.workEatingTier3) { result.insert(3) }
+        if clips.contains(.workEatingTier4) && clips.isVerified(.workEatingTier4) { result.insert(4) }
         return result
     }
 
@@ -463,6 +472,8 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
             "work_tier_2_reason":clips.contains(.workEatingTier2) ? (clips[.workEatingTier2].fallback ?? "none") : "not packaged",
             "work_tier_3_frames":clips.contains(.workEatingTier3) ? clips[.workEatingTier3].images.count : 0,
             "work_tier_3_reason":clips.contains(.workEatingTier3) ? (clips[.workEatingTier3].fallback ?? "none") : "not packaged",
+            "work_tier_4_frames":clips.contains(.workEatingTier4) ? clips[.workEatingTier4].images.count : 0,
+            "work_tier_4_reason":clips.contains(.workEatingTier4) ? (clips[.workEatingTier4].fallback ?? "none") : "not packaged",
             "standing_frames":standing.images.count, "standing_fallback":standing.fallback ?? "none",
                 "artwork":displayedArtwork.rawValue, "behavior":behaviorNode]
             try? JSONSerialization.data(withJSONObject: info, options: [.prettyPrinted, .sortedKeys]).write(to: URL(fileURLWithPath: path))
@@ -571,7 +582,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
         let selected = clips[output.artwork]
         frameIndex = min(output.frame,selected.images.count-1)
         view.image = image(for:output)
-        let pose = displayedArtwork == .standing ? "站姿" : (displayedArtwork == .workEatingTier2 ? "2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "3项任务吃饭" : (displayedArtwork == .slouch ? "双手托腮" : (displayedArtwork == .sleeping ? "伏桌睡姿预览" : "吃饭坐姿"))))
+        let pose = displayedArtwork == .standing ? "站姿" : (displayedArtwork == .workEatingTier2 ? "2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "4项任务吃饭" : (displayedArtwork == .slouch ? "双手托腮" : (displayedArtwork == .sleeping ? "伏桌睡姿预览" : "吃饭坐姿")))))
         view.setAccessibilityLabel("灵梦桌宠，\(workStatus.label)，\(pose)，\(reactionCaption.isEmpty ? "" : reactionCaption + "，")单击互动，拖动移动，右键菜单")
         if playing && !output.wantsAnimation {
             playing = false; timer?.invalidate(); timer = nil
@@ -607,7 +618,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
     }
     func makeMenu() -> NSMenu {
         let menu = NSMenu(); menu.delegate = self; menu.autoenablesItems = false
-        let headingText = displayedArtwork == .workEatingTier2 ? "灵梦 · 2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "灵梦 · 3项任务吃饭" : "灵梦 · 常态站姿")
+        let headingText = displayedArtwork == .workEatingTier2 ? "灵梦 · 2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "灵梦 · 3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "灵梦 · 4项任务吃饭" : "灵梦 · 常态站姿"))
         let heading = item(headingText, nil); heading.isEnabled = false; menu.addItem(heading)
         if !qa {
             let current = item(workStatus.label,nil); current.isEnabled = false; menu.addItem(current)
@@ -633,6 +644,10 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
         }
         if clips.contains(.workEatingTier3), let reason = clips[.workEatingTier3].fallback {
             let warning = item("3项任务姿态不可用，已安全降级为站姿",nil)
+            warning.toolTip = reason; warning.isEnabled = false; menu.addItem(warning)
+        }
+        if clips.contains(.workEatingTier4), let reason = clips[.workEatingTier4].fallback {
+            let warning = item("4项任务姿态不可用，已安全降级为站姿",nil)
             warning.toolTip = reason; warning.isEnabled = false; menu.addItem(warning)
         }
         if let reason = reaction.failure {
@@ -774,6 +789,22 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
                 try require(degraded.artwork == .standing && degraded.node == "work_fallback_tier_3",
                             "task_3 缺失时未安全降级")
                 checks.append("task_3 native identity, static frame selection, reduced motion and safe fallback")
+            }
+            if clips.contains(.workEatingTier4) {
+                let tier4 = clips[.workEatingTier4]
+                try require(tier4.fallback == nil && tier4.images.count == 1 && abs(tier4.total - 0.125) < 0.00001,
+                            "task_4 静态素材加载失败")
+                let work = PetBehavior(now:0); work.setWorkStatus("working",activeTaskCount:4,now:0)
+                let full = work.presentation(now:0.4,availableWorkTiers:[2,3,4])
+                try require(full.artwork == .workEatingTier4 && full.frame == 0 && !full.wantsAnimation && image(for:full) === tier4.images[0],
+                            "working + 4 未选择 task_4 静态帧")
+                let reducedWork = work.presentation(now:0.9,motionAllowed:false,availableWorkTiers:[2,3,4])
+                try require(reducedWork.artwork == .workEatingTier4 && reducedWork.frame == 0 && !reducedWork.wantsAnimation,
+                            "task_4 减弱动态未保持声明代表帧")
+                let degraded = work.presentation(now:1.0,availableWorkTiers:[2,3])
+                try require(degraded.artwork == .standing && degraded.node == "work_fallback_tier_4",
+                            "task_4 缺失时未安全降级")
+                checks.append("task_4 native identity, static frame selection, reduced motion and safe fallback")
             }
             try require(reaction.image != nil && reaction.failure == nil, "生气表情加载失败")
             let model = PetBehavior(now:0); model.setBase("working",now:0)
@@ -1081,7 +1112,7 @@ do {
             loaded[spec.artwork] = try Clip.load(root:root,spec:spec,
                 baseSHA:Bundle.main.object(forInfoDictionaryKey:spec.baseKey) as? String ?? "",
                 manifestSHA:Bundle.main.object(forInfoDictionaryKey:spec.manifestKey) as? String ?? "")
-        } catch where spec.artwork == .workEatingTier2 || spec.artwork == .workEatingTier3 {
+        } catch where spec.artwork == .workEatingTier2 || spec.artwork == .workEatingTier3 || spec.artwork == .workEatingTier4 {
             guard let standing = loaded[.standing] else { throw error }
             loaded[spec.artwork] = Clip(base:standing.base,alpha:standing.alpha,images:[standing.base],
                                            durations:[0],fallback:error.localizedDescription)
@@ -1101,6 +1132,9 @@ do {
             "work_tier_3_frames":clips.contains(.workEatingTier3) ? clips[.workEatingTier3].images.count : 0,
             "work_tier_3_duration":clips.contains(.workEatingTier3) ? clips[.workEatingTier3].total : 0,
             "work_tier_3_reason":clips.contains(.workEatingTier3) ? (clips[.workEatingTier3].fallback ?? "none") : "not packaged",
+            "work_tier_4_frames":clips.contains(.workEatingTier4) ? clips[.workEatingTier4].images.count : 0,
+            "work_tier_4_duration":clips.contains(.workEatingTier4) ? clips[.workEatingTier4].total : 0,
+            "work_tier_4_reason":clips.contains(.workEatingTier4) ? (clips[.workEatingTier4].fallback ?? "none") : "not packaged",
             "standing_frames":standing.images.count,"standing_duration":standing.total,"standing_reason":standing.fallback ?? "none"]
         print(String(data:try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]),encoding:.utf8)!)
     } else {

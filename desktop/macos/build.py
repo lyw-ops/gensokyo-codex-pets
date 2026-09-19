@@ -11,6 +11,7 @@ def main():
     p.add_argument('--standing',type=Path,required=True,help='Approved exact standing-loop package from import_standing.py')
     p.add_argument('--work-tier-2',type=Path,help='Approved exact 596px task_2 work-eating package')
     p.add_argument('--work-tier-3',type=Path,help='Visually approved exact 596px task_3 static work-eating package')
+    p.add_argument('--work-tier-4',type=Path,help='Visually approved exact 596px task_4 static work-eating package')
     p.add_argument('--out',type=Path,required=True)
     p.add_argument('--slouch',type=Path,help='Reviewed optional double-cheek package')
     p.add_argument('--sleep',type=Path,help='Selected static sleep package, preview only')
@@ -59,6 +60,20 @@ def main():
         assert tm['frames']==[{'file':'frames/frame_000.png','sha256':tm['base']['sha256'],'duration_ms':125}]
         assert sha(tier3/'base.png')==tm['base']['sha256']
         assert sha(tier3/'frames/frame_000.png')==tm['base']['sha256']
+    if a.work_tier_4:
+        tier4=a.work_tier_4.resolve()
+        assert tier4 not in app.parents and app not in tier4.parents
+        expected_tier4_manifest='c187f8d4390d4f082001c599dab6d2dbd8e699662c9a42cbe84bed9cd3300221'
+        assert sha(tier4/'source.json')==expected_tier4_manifest, 'Unreviewed task_4 manifest'
+        tm=json.loads((tier4/'source.json').read_text())
+        assert tm['exact_frame_source_version']==1 and tm['character']=='reimu'
+        assert tm['state_set']=='eating' and tm['state']=='task_4'
+        assert tm['canvas']=={'width':596,'height':596}
+        assert tm['playback']=={'fps':8,'frame_count':1,'loop':True}
+        assert tm['base']=={'file':'base.png','sha256':'9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238'}
+        assert tm['frames']==[{'file':'frames/frame_000.png','sha256':tm['base']['sha256'],'duration_ms':125}]
+        assert sha(tier4/'base.png')==tm['base']['sha256']
+        assert sha(tier4/'frames/frame_000.png')==tm['base']['sha256']
     if a.slouch:
         assert a.slouch.resolve() not in app.parents and app not in a.slouch.resolve().parents
         sm=json.loads((a.slouch/'source.json').read_text())
@@ -94,9 +109,10 @@ def main():
     shutil.copyfile(a.annoyed,resources/'Reactions/annoyed.png')
     assert sha(resources/'Reactions/annoyed.png')==reaction_sha
     name='灵梦桌宠预览' if a.preview else '灵梦桌宠'
+    version,build=('1.11','13') if a.work_tier_4 else ('1.10','12')
     info={'CFBundleIdentifier':'local.reimu.onigiri.preview' if a.preview else 'local.reimu.onigiri.desktop','CFBundleName':name,
           'CFBundleDisplayName':name,'CFBundleExecutable':'ReimuPet','CFBundlePackageType':'APPL',
-          'CFBundleShortVersionString':'1.10','CFBundleVersion':'12','PetPreviewBuild':a.preview,'LSMinimumSystemVersion':'13.0',
+          'CFBundleShortVersionString':version,'CFBundleVersion':build,'PetPreviewBuild':a.preview,'LSMinimumSystemVersion':'13.0',
           'LSUIElement':True,'NSHighResolutionCapable':True,'NSPrincipalClass':'NSApplication',
           'CFBundleIconFile':'PetIcon','PetBaseSHA256':sha(source/'base.png'),
           'PetManifestSHA256':expected,'PetAnnoyedSHA256':reaction_sha,
@@ -110,6 +126,10 @@ def main():
         shutil.copytree(a.work_tier_3,resources/'WorkEatingTier3',copy_function=shutil.copyfile)
         info.update(PetWorkTier3BaseSHA256=sha(resources/'WorkEatingTier3/base.png'),
                     PetWorkTier3ManifestSHA256=sha(resources/'WorkEatingTier3/source.json'))
+    if a.work_tier_4:
+        shutil.copytree(a.work_tier_4,resources/'WorkEatingTier4',copy_function=shutil.copyfile)
+        info.update(PetWorkTier4BaseSHA256=sha(resources/'WorkEatingTier4/base.png'),
+                    PetWorkTier4ManifestSHA256=sha(resources/'WorkEatingTier4/source.json'))
     if a.slouch:
         shutil.copytree(a.slouch,resources/'Slouch',copy_function=shutil.copyfile)
         info.update(PetSlouchBaseSHA256=sha(resources/'Slouch/base.png'),PetSlouchManifestSHA256=sha(resources/'Slouch/source.json'))

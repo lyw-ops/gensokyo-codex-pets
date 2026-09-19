@@ -1,5 +1,59 @@
 # GPT project handoff / GPT 项目交接
 
+## 2026-09-20 task_4 原生静态切片源码收口发布（未安装）
+
+本次源码提交发布已获视觉批准的`work_eating_task_4`垂直切片、独立
+`task_4-static-v1`资源包、摘要门、隔离回退和回归测试。选择范围仍严格是
+`working + activeTaskCount == 4`；5及以上继续由唯一`ReimuFoodTier`边界封顶为Tier5，
+不会误选Tier4。Tier2动态切入等待安全循环边界，静态Tier3/4离开无额外等待，高优先级
+抢占与最新任务数恢复保持不变。
+
+发布前重新核对源/base/frame均为SHA-256
+`9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238`，批准后manifest为
+`c187f8d4390d4f082001c599dab6d2dbd8e699662c9a42cbe84bed9cd3300221`。全新隔离preview编译、
+严格签名、Tier4四项加载/独立回退、仓库门禁与Harness 674项聚合测试通过。没有安装应用、
+创建tag或发布安装包；task_4仍是一帧静态保持，不是多帧吃面动画完成。
+
+## 2026-09-20 task_4 原生静态切片已获视觉批准（未生成正式包）
+
+用户查看Harness `build/reimu-tier4-runtime-v1/runtime-preview/review-sheet.png`、
+`runtime-review.gif`和`qa/native-size-review.png`后回复“可以”。该批准绑定现有task_4
+原图SHA-256 `9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238`
+以及审阅中展示的原生大小、摆放、静态保持、Tier2/3/4切换、`needs_input`立即抢占和按
+最新count=2恢复。它不批准未制作的多帧吃面动画、额外过渡、安装、commit、push或发布。
+
+`pets/reimu/animations/eating/sources/task_4-static-v1/source.json`仅更新批准说明，图像、
+帧绑定和播放声明不变；`build.py --work-tier-4`不再强制`--preview`，但继续严格校验
+manifest与图像摘要。本轮没有生成或安装正式身份包；下方技术预览仍是批准所绑定的独立
+preview证据。
+
+## 2026-09-20 task_4 原生静态垂直切片技术预览完成（等待视觉确认）
+
+当前未提交工作区新增独立`work_eating_task_4`身份和
+`pets/reimu/animations/eating/sources/task_4-static-v1/`资源包。它只在
+`WorkStatus.state == "working"`且真实`activeTaskCount == 4`时选择；5及以上仍由唯一
+`ReimuFoodTier = min(activeTaskCount, 5)`边界封顶为Tier5 fallback，不会误选Tier4。
+源图、运行时base和唯一帧均保持SHA-256
+`9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238`，没有重绘、分割、
+缩放或整场摇动。当前仍是125ms声明的一帧静态保持，不是完成的吃面动画。
+
+Tier2进入Tier4仍等待当前1.6秒咀嚼循环边界；Tier3和Tier4静帧离开时不人为等待。
+failure、needs_input、点击、拖动和暂停立即抢占，恢复使用最新任务数。Tier4缺失、帧损坏、
+manifest或摘要不匹配只把Tier4降级为站姿，Tier2、Tier3、站姿、手动吃饭和托腮仍可用。
+`desktop/macos/build.py --work-tier-4`强制`--preview`，在用户批准真实原生大小、支撑线、
+跨档占地与切换之前不能生成正式身份包。
+
+Harness独立预览位于`build/reimu-tier4-runtime-v1/灵梦桌宠预览.app`（1.11/build13）。
+`runtime-preview/review-sheet.png`和`runtime-review.gif`使用隔离snapshot覆盖Tier2/3/4、
+`needs_input`抢占及最新count=2恢复；5次Tier4窗口捕获逐字节相同。181项Swift行为、
+35项原生AppKit、125项Consumer工具、14项bridge、31项状态、Tier2/3/4各4项资源加载/
+隔离回退、3项表情、5项站姿与仓库门禁通过。MacOSX26.5.sdk全新编译和严格深层验签通过，
+没有修改系统工具链、连接真实provider、安装、commit、push或发布。
+
+原生160pt测量中Tier4可见框约117.5×148.5pt，Tier3约120.5×147pt，支撑余量均2.5pt；
+Tier2约150×156pt，既有跨档占地差异已如实显示在同尺度审阅图。技术与原生接入已验证，
+Tier4视觉门仍等待用户确认；不得因测试通过而写成视觉批准或动态完成。
+
 ## 2026-09-20 task_2/task_3 原生工作餐垂直切片发布
 
 本提交把已分别通过技术与视觉门的task_2动态循环、task_3静态姿态及其独立失败回退一起

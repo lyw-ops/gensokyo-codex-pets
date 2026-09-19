@@ -1,20 +1,23 @@
 # 灵梦工作状态桌宠（源码与安装版边界）
 
-## 当前未安装开发：task_2 动态 + task_3 静态原生垂直切片（2026-09-20）
+## 当前已发布源码、未安装：task_2 动态 + task_3/task_4 静态原生垂直切片（2026-09-20）
 
 源码已将observer的 `WorkStatus.active` 传入 `PetBehavior`。当base为 `working`
 且真实活动任务数恰为2时，播放独立 `work_eating_task_2` 身份的已审核
-16帧精确循环（10 fps）；恰为3时选择`work_eating_task_3`，按原字节显示现有
-Eating Set v1单帧。task_3没有已审核多帧或分层源，因此这是诚实静态姿态，
-不是动画完成声明。档位1、4、5使用显式站姿fallback；不复用task_2或task_3。
+16帧精确循环（10 fps）；恰为3或4时分别选择`work_eating_task_3`和
+`work_eating_task_4`，按原字节显示对应的Eating Set v1单帧。task_3/task_4没有已审核
+多帧或分层源，因此它们是诚实静态姿态，不是动画完成声明。档位1、5使用显式站姿
+fallback；5个及以上只映射封顶Tier5，不复用task_2、task_3或task_4。
 普通数量变化在循环边界切换，高优先状态和交互立即抢占，reduced motion固定frame 0。
 
 构建时用 `--work-tier-2 pets/reimu/animations/eating/sources/task_2-chew-v9`
-和 `--work-tier-3 pets/reimu/animations/eating/sources/task_3-static-v1`显式打包资源。
+、`--work-tier-3 pets/reimu/animations/eating/sources/task_3-static-v1`和
+`--work-tier-4 pets/reimu/animations/eating/sources/task_4-static-v1`显式打包资源。
 原生加载器校验manifest身份、摘要、帧数、FPS、序号和每帧摘要；破损或缺失时只降级
-对应档位。task_2隔离预览已获用户确认；用户于2026-09-20确认了task_3原生审阅图，
-因此`--work-tier-3`现可用于正式身份构建。这个批准只覆盖当前单帧大小、姿态与运行时
-切换，不把task_3记作多帧动画完成。两者都尚未安装。
+对应档位。task_2隔离预览已获用户确认；用户于2026-09-20分别确认了task_3和task_4
+原生审阅图，因此`--work-tier-3`与`--work-tier-4`现可用于正式身份构建。这些批准只覆盖
+已展示的单帧大小、姿态、静态保持与运行时切换，不把task_3或task_4记作多帧动画完成。
+三个档位都尚未安装，本次task_4确认也没有生成、安装或发布正式身份应用。
 进入/离开task_2、未来跨档和抢占恢复的过渡动画是独立后续任务；它们不得延迟高优先抢占
 或恢复过期档位。当前正式安装版仍以 `HANDOFF.md` 顶部的安装回执为准。
 

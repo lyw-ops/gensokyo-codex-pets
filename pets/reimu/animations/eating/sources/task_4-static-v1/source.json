@@ -1,0 +1,48 @@
+{
+  "approval": {
+    "runtime_scope": "native size, placement, static hold, and demonstrated switching approved 2026-09-20; no multi-frame animation claim",
+    "source_image": "pre-existing Eating Set v1 task_4 asset"
+  },
+  "base": {
+    "file": "base.png",
+    "sha256": "9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238"
+  },
+  "canvas": {
+    "height": 596,
+    "width": 596
+  },
+  "character": "reimu",
+  "exact_frame_source_version": 1,
+  "frames": [
+    {
+      "duration_ms": 125,
+      "file": "frames/frame_000.png",
+      "sha256": "9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238"
+    }
+  ],
+  "motion": {
+    "description": "static hold; no multi-frame tier-4 artwork exists",
+    "static": [
+      "character",
+      "ramen bowl",
+      "dumplings",
+      "table food",
+      "table",
+      "tatami",
+      "steam and heart marks"
+    ]
+  },
+  "playback": {
+    "fps": 8,
+    "frame_count": 1,
+    "loop": true
+  },
+  "provenance": {
+    "consumer_manifest": "assets/reimu/eating/task_4/animation.json",
+    "consumer_source_sha256": "9f0b18946eca4c7c0d27a8dbbd5f966da615867913d8e91c8454dd629de0b238",
+    "harness_intake": "build/reimu-tier4-intake-20260920",
+    "pixel_policy": "byte-exact reuse of the existing 596x596 transparent task_4 image; no resampling, repaint, segmentation or generated frames"
+  },
+  "state": "task_4",
+  "state_set": "eating"
+}
