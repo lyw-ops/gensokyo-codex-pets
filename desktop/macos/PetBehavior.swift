@@ -1,7 +1,7 @@
 import Foundation
 
 // Behavior owns only timing/input arbitration. Work observation and food tiers stay outside.
-enum PetArtwork: String { case standing, eating, workEatingTier2, workEatingTier3, workEatingTier4, workEatingTier5, slouch, sleeping }
+enum PetArtwork: String { case standing, eating, workEatingTier1, workEatingTier2, workEatingTier3, workEatingTier4, workEatingTier5, slouch, sleeping }
 
 /// Frame selection is data, not code. A new action declares the program it plays
 /// instead of adding another branch to the presentation switch.
@@ -197,7 +197,7 @@ final class PetBehavior {
     private var workLoopDuration: Double {
         switch displayedFoodTier {
         case 2: return 1.6
-        case 3, 4, 5: return 0 // The current tier-3/4/5 sources are stills; every instant is a safe boundary.
+        case 1, 3, 4, 5: return 0 // The current tier-1/3/4/5 sources are stills; every instant is a safe boundary.
         default: return 7.0
         }
     }
@@ -444,6 +444,11 @@ final class PetBehavior {
         let t = max(0, now - baseStarted)
         // Work metadata stays in the status card, independent of finite character actions.
         if base == "working" {
+            if displayedFoodTier == 1 && availableWorkTiers.contains(1) {
+                return PetPresentation(node: "work_eating_task_1",
+                                       frame: 0, caption: "", wantsAnimation: false,
+                                       artwork: .workEatingTier1)
+            }
             if displayedFoodTier == 2 && availableWorkTiers.contains(2) {
                 return PetPresentation(node: "work_eating_task_2",
                                        frame: motionAllowed ? Int(t * 10) % 16 : 0,

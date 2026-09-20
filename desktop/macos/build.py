@@ -9,6 +9,7 @@ def main():
     p.add_argument('--icon',type=Path,required=True)
     p.add_argument('--annoyed',type=Path,required=True,help='Reviewed transparent frown/anger-mark PNG')
     p.add_argument('--standing',type=Path,required=True,help='Approved exact standing-loop package from import_standing.py')
+    p.add_argument('--work-tier-1',type=Path,help='Visually approved exact 596px task_1 static work-eating package')
     p.add_argument('--work-tier-2',type=Path,help='Approved exact 596px task_2 work-eating package')
     p.add_argument('--work-tier-3',type=Path,help='Visually approved exact 596px task_3 static work-eating package')
     p.add_argument('--work-tier-4',type=Path,help='Visually approved exact 596px task_4 static work-eating package')
@@ -31,6 +32,20 @@ def main():
     assert sha(a.annoyed)==reaction_sha, 'Unreviewed annoyed artwork'
     verify_package(a.standing)
     assert a.standing.resolve() not in app.parents and app not in a.standing.resolve().parents
+    if a.work_tier_1:
+        tier1=a.work_tier_1.resolve()
+        assert tier1 not in app.parents and app not in tier1.parents
+        expected_tier1_manifest='ad9e4b9887359df3d2567d434ab169993b33e5026578e50351a0722c0624b84f'
+        assert sha(tier1/'source.json')==expected_tier1_manifest, 'Unreviewed task_1 manifest'
+        tm=json.loads((tier1/'source.json').read_text())
+        assert tm['exact_frame_source_version']==1 and tm['character']=='reimu'
+        assert tm['state_set']=='eating' and tm['state']=='task_1'
+        assert tm['canvas']=={'width':596,'height':596}
+        assert tm['playback']=={'fps':8,'frame_count':1,'loop':True}
+        assert tm['base']=={'file':'base.png','sha256':'8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e'}
+        assert tm['frames']==[{'file':'frames/frame_000.png','sha256':tm['base']['sha256'],'duration_ms':125}]
+        assert sha(tier1/'base.png')==tm['base']['sha256']
+        assert sha(tier1/'frames/frame_000.png')==tm['base']['sha256']
     if a.work_tier_2:
         tier2=a.work_tier_2.resolve()
         assert tier2 not in app.parents and app not in tier2.parents
@@ -124,7 +139,7 @@ def main():
     shutil.copyfile(a.annoyed,resources/'Reactions/annoyed.png')
     assert sha(resources/'Reactions/annoyed.png')==reaction_sha
     name='灵梦桌宠预览' if a.preview else '灵梦桌宠'
-    version,build=('1.12','14') if a.work_tier_5 else (('1.11','13') if a.work_tier_4 else ('1.10','12'))
+    version,build=('1.13','15') if a.work_tier_1 else (('1.12','14') if a.work_tier_5 else (('1.11','13') if a.work_tier_4 else ('1.10','12')))
     info={'CFBundleIdentifier':'local.reimu.onigiri.preview' if a.preview else 'local.reimu.onigiri.desktop','CFBundleName':name,
           'CFBundleDisplayName':name,'CFBundleExecutable':'ReimuPet','CFBundlePackageType':'APPL',
           'CFBundleShortVersionString':version,'CFBundleVersion':build,'PetPreviewBuild':a.preview,'LSMinimumSystemVersion':'13.0',
@@ -133,6 +148,10 @@ def main():
           'PetManifestSHA256':expected,'PetAnnoyedSHA256':reaction_sha,
           'PetStandingBaseSHA256':BASE_SHA,'PetStandingManifestSHA256':sha(resources/'Standing/source.json'),
           'NSHumanReadableCopyright':'非官方东方同人，本地示例。'}
+    if a.work_tier_1:
+        shutil.copytree(a.work_tier_1,resources/'WorkEatingTier1',copy_function=shutil.copyfile)
+        info.update(PetWorkTier1BaseSHA256=sha(resources/'WorkEatingTier1/base.png'),
+                    PetWorkTier1ManifestSHA256=sha(resources/'WorkEatingTier1/source.json'))
     if a.work_tier_2:
         shutil.copytree(a.work_tier_2,resources/'WorkEatingTier2',copy_function=shutil.copyfile)
         info.update(PetWorkTier2BaseSHA256=sha(resources/'WorkEatingTier2/base.png'),

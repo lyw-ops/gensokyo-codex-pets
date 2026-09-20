@@ -159,7 +159,15 @@ struct ClipSpec {
                                    side: 482, reference: 596),
                  supportEdge: 582.0 / 688.0,
                  frameFile: { index in String(format: "frames/frame_%03d.png", index) }),
-    ] + (Bundle.main.object(forInfoDictionaryKey:"PetWorkTier2ManifestSHA256") == nil ? [] : [
+    ] + (Bundle.main.object(forInfoDictionaryKey:"PetWorkTier1ManifestSHA256") == nil ? [] : [
+        // Tier 1 is one immutable Eating Set drawing. Keep the onigiri/table/tatami
+        // scene as an honest still instead of moving the flattened canvas.
+        ClipSpec(artwork:.workEatingTier1,directory:"WorkEatingTier1",option:"--work-tier-1-root",
+                 side:596,frameCount:1,fps:8,stateSet:"eating",state:"task_1",
+                 baseKey:"PetWorkTier1BaseSHA256",manifestKey:"PetWorkTier1ManifestSHA256",
+                 placement:.full,supportEdge:586.0/596,
+                 frameFile:{ _ in "frames/frame_000.png" })
+    ]) + (Bundle.main.object(forInfoDictionaryKey:"PetWorkTier2ManifestSHA256") == nil ? [] : [
         // This is the reviewed task_2 exact-frame source, not the generic/manual eating clip.
         // Its explicit runtime identity prevents any other task count from selecting it.
         ClipSpec(artwork:.workEatingTier2,directory:"WorkEatingTier2",option:"--work-tier-2-root",
@@ -404,6 +412,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
     var reduced: Bool { preferences.bool(forKey: "reduced") || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
     var availableWorkTiers: Set<Int> {
         var result = Set<Int>()
+        if clips.contains(.workEatingTier1) && clips.isVerified(.workEatingTier1) { result.insert(1) }
         if clips.contains(.workEatingTier2) && clips.isVerified(.workEatingTier2) { result.insert(2) }
         if clips.contains(.workEatingTier3) && clips.isVerified(.workEatingTier3) { result.insert(3) }
         if clips.contains(.workEatingTier4) && clips.isVerified(.workEatingTier4) { result.insert(4) }
@@ -477,6 +486,8 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
             "sleep_reason":ClipSpec.registry.contains(where:{$0.artwork == .sleeping}) ? (clips[.sleeping].fallback ?? "none") : "not packaged",
             "slouch_frames":ClipSpec.registry.contains(where:{$0.artwork == .slouch}) ? clips[.slouch].images.count : 0,
             "slouch_reason":ClipSpec.registry.contains(where:{$0.artwork == .slouch}) ? (clips[.slouch].fallback ?? "none") : "not packaged",
+            "work_tier_1_frames":clips.contains(.workEatingTier1) ? clips[.workEatingTier1].images.count : 0,
+            "work_tier_1_reason":clips.contains(.workEatingTier1) ? (clips[.workEatingTier1].fallback ?? "none") : "not packaged",
             "work_tier_2_frames":clips.contains(.workEatingTier2) ? clips[.workEatingTier2].images.count : 0,
             "work_tier_2_reason":clips.contains(.workEatingTier2) ? (clips[.workEatingTier2].fallback ?? "none") : "not packaged",
             "work_tier_3_frames":clips.contains(.workEatingTier3) ? clips[.workEatingTier3].images.count : 0,
@@ -593,7 +604,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
         let selected = clips[output.artwork]
         frameIndex = min(output.frame,selected.images.count-1)
         view.image = image(for:output)
-        let pose = displayedArtwork == .standing ? "站姿" : (displayedArtwork == .workEatingTier2 ? "2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "4项任务吃饭" : (displayedArtwork == .workEatingTier5 ? "5项以上任务吃饭" : (displayedArtwork == .slouch ? "双手托腮" : (displayedArtwork == .sleeping ? "伏桌睡姿预览" : "吃饭坐姿"))))))
+        let pose = displayedArtwork == .standing ? "站姿" : (displayedArtwork == .workEatingTier1 ? "1项任务吃饭" : (displayedArtwork == .workEatingTier2 ? "2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "4项任务吃饭" : (displayedArtwork == .workEatingTier5 ? "5项以上任务吃饭" : (displayedArtwork == .slouch ? "双手托腮" : (displayedArtwork == .sleeping ? "伏桌睡姿预览" : "吃饭坐姿")))))))
         view.setAccessibilityLabel("灵梦桌宠，\(workStatus.label)，\(pose)，\(reactionCaption.isEmpty ? "" : reactionCaption + "，")单击互动，拖动移动，右键菜单")
         if playing && !output.wantsAnimation {
             playing = false; timer?.invalidate(); timer = nil
@@ -629,7 +640,7 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
     }
     func makeMenu() -> NSMenu {
         let menu = NSMenu(); menu.delegate = self; menu.autoenablesItems = false
-        let headingText = displayedArtwork == .workEatingTier2 ? "灵梦 · 2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "灵梦 · 3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "灵梦 · 4项任务吃饭" : (displayedArtwork == .workEatingTier5 ? "灵梦 · 5项以上任务吃饭" : "灵梦 · 常态站姿")))
+        let headingText = displayedArtwork == .workEatingTier1 ? "灵梦 · 1项任务吃饭" : (displayedArtwork == .workEatingTier2 ? "灵梦 · 2项任务吃饭" : (displayedArtwork == .workEatingTier3 ? "灵梦 · 3项任务吃饭" : (displayedArtwork == .workEatingTier4 ? "灵梦 · 4项任务吃饭" : (displayedArtwork == .workEatingTier5 ? "灵梦 · 5项以上任务吃饭" : "灵梦 · 常态站姿"))))
         let heading = item(headingText, nil); heading.isEnabled = false; menu.addItem(heading)
         if !qa {
             let current = item(workStatus.label,nil); current.isEnabled = false; menu.addItem(current)
@@ -647,6 +658,10 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
         }
         if let reason = standing.fallback {
             let warning = item("站姿眨眼不可用，已保持原站姿",nil)
+            warning.toolTip = reason; warning.isEnabled = false; menu.addItem(warning)
+        }
+        if clips.contains(.workEatingTier1), let reason = clips[.workEatingTier1].fallback {
+            let warning = item("1项任务姿态不可用，已安全降级为站姿",nil)
             warning.toolTip = reason; warning.isEnabled = false; menu.addItem(warning)
         }
         if clips.contains(.workEatingTier2), let reason = clips[.workEatingTier2].fallback {
@@ -773,6 +788,22 @@ final class PetApp: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDel
                         "站姿素材加载失败"); checks.append("140 verified standing frames and 7000 ms")
             try require(standing.index(at:4.8) == 96 && standing.index(at:4.9) == 98 && standing.index(at:7) == 0,
                         "站姿时间轴失败"); checks.append("approved standing blink timing")
+            if clips.contains(.workEatingTier1) {
+                let tier1 = clips[.workEatingTier1]
+                try require(tier1.fallback == nil && tier1.images.count == 1 && abs(tier1.total - 0.125) < 0.00001,
+                            "task_1 静态素材加载失败")
+                let work = PetBehavior(now:0); work.setWorkStatus("working",activeTaskCount:1,now:0)
+                let full = work.presentation(now:0.4,availableWorkTiers:[1,2,3,4,5])
+                try require(full.artwork == .workEatingTier1 && full.frame == 0 && !full.wantsAnimation && image(for:full) === tier1.images[0],
+                            "working + 1 未选择 task_1 静态帧")
+                let reducedWork = work.presentation(now:0.9,motionAllowed:false,availableWorkTiers:[1,2,3,4,5])
+                try require(reducedWork.artwork == .workEatingTier1 && reducedWork.frame == 0 && !reducedWork.wantsAnimation,
+                            "task_1 减弱动态未保持声明代表帧")
+                let degraded = work.presentation(now:1.0,availableWorkTiers:[2,3,4,5])
+                try require(degraded.artwork == .standing && degraded.node == "work_fallback_tier_1",
+                            "task_1 缺失时未安全降级")
+                checks.append("task_1 native identity, static frame selection, reduced motion and safe fallback")
+            }
             if clips.contains(.workEatingTier2) {
                 let tier2 = clips[.workEatingTier2]
                 try require(tier2.fallback == nil && tier2.images.count == 16 && abs(tier2.total - 1.6) < 0.00001,
@@ -1143,7 +1174,7 @@ do {
             loaded[spec.artwork] = try Clip.load(root:root,spec:spec,
                 baseSHA:Bundle.main.object(forInfoDictionaryKey:spec.baseKey) as? String ?? "",
                 manifestSHA:Bundle.main.object(forInfoDictionaryKey:spec.manifestKey) as? String ?? "")
-        } catch where spec.artwork == .workEatingTier2 || spec.artwork == .workEatingTier3 || spec.artwork == .workEatingTier4 || spec.artwork == .workEatingTier5 {
+        } catch where spec.artwork == .workEatingTier1 || spec.artwork == .workEatingTier2 || spec.artwork == .workEatingTier3 || spec.artwork == .workEatingTier4 || spec.artwork == .workEatingTier5 {
             guard let standing = loaded[.standing] else { throw error }
             loaded[spec.artwork] = Clip(base:standing.base,alpha:standing.alpha,images:[standing.base],
                                            durations:[0],fallback:error.localizedDescription)
@@ -1157,6 +1188,9 @@ do {
             "sleep_reason":ClipSpec.registry.contains(where:{$0.artwork == .sleeping}) ? (clips[.sleeping].fallback ?? "none") : "not packaged",
             "slouch_frames":ClipSpec.registry.contains(where:{$0.artwork == .slouch}) ? clips[.slouch].images.count : 0,
             "slouch_reason":ClipSpec.registry.contains(where:{$0.artwork == .slouch}) ? (clips[.slouch].fallback ?? "none") : "not packaged",
+            "work_tier_1_frames":clips.contains(.workEatingTier1) ? clips[.workEatingTier1].images.count : 0,
+            "work_tier_1_duration":clips.contains(.workEatingTier1) ? clips[.workEatingTier1].total : 0,
+            "work_tier_1_reason":clips.contains(.workEatingTier1) ? (clips[.workEatingTier1].fallback ?? "none") : "not packaged",
             "work_tier_2_frames":clips.contains(.workEatingTier2) ? clips[.workEatingTier2].images.count : 0,
             "work_tier_2_duration":clips.contains(.workEatingTier2) ? clips[.workEatingTier2].total : 0,
             "work_tier_2_reason":clips.contains(.workEatingTier2) ? (clips[.workEatingTier2].fallback ?? "none") : "not packaged",

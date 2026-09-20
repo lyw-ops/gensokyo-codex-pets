@@ -86,36 +86,39 @@ This section freezes behavior semantics only. `idle_onigiri` and the independent
 caught/landing art still require authored assets, Harness validation, native integration,
 normal-size visual QA, and explicit approval before they can be reported as production.
 
-## Current implementation — 2026-09-20: native tier-2 through tier-5 vertical slice
+## Current implementation — 2026-09-20: native tier-1 through tier-5 vertical slice
 
 The native observer-to-artwork path now preserves `WorkStatus.active` through
-`PetBehavior.setWorkStatus`. When the observed base is `working` and the exact count is
-two, the selector uses the explicit `work_eating_task_2` runtime identity and the approved
+`PetBehavior.setWorkStatus`. When the observed base is `working`, exact count one uses the
+approved `work_eating_task_1` static identity. Exact count two uses the explicit
+`work_eating_task_2` runtime identity and the approved
 16-frame `task_2-chew-v9` package at 10 fps. Exact counts three and four use the separate
 `work_eating_task_3` and `work_eating_task_4` identities. The capped tier for five or more
-uses `work_eating_task_5` through that same mapping boundary. Tiers three through five each
+uses `work_eating_task_5` through that same mapping boundary. Tiers one and three through five each
 hold one immutable Eating Set frame; they are static native poses, not completed eating
-animations. All four identities are separate from the generic manual/idle eating clip; no
+animations. All five identities are separate from the generic manual/idle eating clip; no
 filename inference is used.
 
 This is deliberately partial coverage:
 
 - `ReimuFoodTier` remains `min(activeTaskCount, 5)`, while the uncapped observed count
   remains in `WorkStatus` and the status card. Animation never writes task truth.
-- tier 1 uses a named standing fallback. Counts above five cap at tier 5 and select the
-  same `work_eating_task_5` identity; there is no distributed second `>= 5` threshold.
+- counts above five cap at tier 5 and select the same `work_eating_task_5` identity; there
+  is no distributed second threshold for either exact count one or the capped tier.
 - ordinary count changes commit at the current visual loop boundary. Leaving `working`
   and the existing higher-priority failure, waiting, click, drag, and pause paths preempt
   immediately. Recovery resolves the latest observed count rather than a stale tier.
-- reduced motion holds frame 0 for all four tiers. A missing base/frame or identity/digest
+- reduced motion holds frame 0 for all five tiers. A missing base/frame or identity/digest
   mismatch degrades only that tier to standing and leaves the existing clips available.
 
 The source frames and provenance files are unchanged. The user approved the current
-native tier-2 loop preview on 2026-09-19 and the tier-3, tier-4, and tier-5 static previews
-on 2026-09-20. Tiers 4 and 5 therefore no longer have preview-only packaging gates, but no
-formal Tier 4 or Tier 5 package was generated or installed in those approval steps.
-Installation remains open. Tier 1, `idle_onigiri`, `drag_float`, and `drag_land` remain unimplemented
-artwork/runtime deliveries except for their previously documented honest fallbacks.
+native tier-2 loop preview on 2026-09-19 and the tier-1, tier-3, tier-4, and tier-5 static
+previews on 2026-09-20. All five workload tiers therefore pass their current native visual
+gates, but no formal application package was generated or installed in those approval steps.
+Installation remains open. The Tier1 approval releases only its exact digest-pinned production
+build gate; it does not claim a multi-frame animation. `idle_onigiri`, `drag_float`, and
+`drag_land` remain unimplemented artwork/runtime deliveries except for their previously
+documented honest fallbacks.
 
 **Transition backlog.** A later, separately gated delivery may add authored transitions
 for standing/fallback → task_2 entry, task_2 → another base exit, cross-tier composition

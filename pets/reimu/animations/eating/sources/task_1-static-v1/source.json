@@ -1,0 +1,46 @@
+{
+  "approval": {
+    "runtime_scope": "native size, placement, static hold, and demonstrated switching approved 2026-09-20; no multi-frame animation claim",
+    "source_image": "pre-existing Eating Set v1 task_1 asset"
+  },
+  "base": {
+    "file": "base.png",
+    "sha256": "8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e"
+  },
+  "canvas": {
+    "height": 596,
+    "width": 596
+  },
+  "character": "reimu",
+  "exact_frame_source_version": 1,
+  "frames": [
+    {
+      "duration_ms": 125,
+      "file": "frames/frame_000.png",
+      "sha256": "8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e"
+    }
+  ],
+  "motion": {
+    "description": "static hold; no multi-frame tier-1 artwork exists",
+    "static": [
+      "character",
+      "onigiri",
+      "table",
+      "tatami",
+      "tear marks and expression"
+    ]
+  },
+  "playback": {
+    "fps": 8,
+    "frame_count": 1,
+    "loop": true
+  },
+  "provenance": {
+    "consumer_manifest": "assets/reimu/eating/task_1/animation.json",
+    "consumer_source_sha256": "8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e",
+    "harness_intake": "build/reimu-tier1-intake-20260920",
+    "pixel_policy": "byte-exact reuse of the existing 596x596 transparent task_1 image; no resampling, repaint, segmentation or generated frames"
+  },
+  "state": "task_1",
+  "state_set": "eating"
+}

@@ -51,10 +51,15 @@ required_files=(
   tools/import_reimu_task2_chew_v9.py
   tools/test_import_reimu_task2_chew_v9.py
   desktop/macos/test_work_tier2.py
+  desktop/macos/test_work_tier1.py
   desktop/macos/test_work_tier3.py
   desktop/macos/test_work_tier4.py
   desktop/macos/test_work_tier5.py
   pets/reimu/animations/eating/animation-set.json
+  pets/reimu/animations/eating/sources/task_1-static-v1/source.json
+  pets/reimu/animations/eating/sources/task_1-static-v1/README.md
+  pets/reimu/animations/eating/sources/task_1-static-v1/base.png
+  pets/reimu/animations/eating/sources/task_1-static-v1/frames/frame_000.png
   pets/reimu/animations/eating/sources/task_2-chew-v7/source.json
   pets/reimu/animations/eating/sources/task_2-chew-v7/base.png
   pets/reimu/animations/eating/sources/task_2-chew-v9/source.json

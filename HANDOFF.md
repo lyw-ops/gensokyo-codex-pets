@@ -1,5 +1,49 @@
 # GPT project handoff / GPT 项目交接
 
+## 2026-09-20 task_1 原生静态切片源码收口（未安装）
+
+用户查看Harness `build/reimu-tier1-runtime-v1/runtime-preview/runtime-review.gif`、
+`review-sheet.png`及`qa/native-size-review.png`后回复“收口”。本次批准绑定task_1原图
+SHA-256 `8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e`
+及已展示的原生大小、摆放、支撑/裁切、单帧静态保持、Tier1–5切换、`needs_input`立即抢占
+和按最新count=4恢复。它不批准未制作的多帧吃饭动画、额外过渡或安装。
+
+`task_1-static-v1/source.json`只更新批准说明，图像、帧绑定、播放声明和来源不变；批准后
+manifest SHA-256为`ad9e4b9887359df3d2567d434ab169993b33e5026578e50351a0722c0624b84f`。
+`build.py --work-tier-1`不再强制preview，但仍严格校验manifest与图像摘要。当前尚未安装应用、
+创建tag或发布安装包；本次源码收口不改变下面技术预览所绑定的原生证据。
+
+批准后使用MacOSX26.5.sdk和隔离module cache重新构建预览身份与`/private/tmp`临时正式身份，
+两者严格深层签名通过；可执行文件SHA-256分别为
+`de4c3d47c464e2a8e269b9d496977392ca10b05fe4ded78416dbca97eb4c380c`和
+`61dfb650a8f4c2016efe7f6bb05cac0bf13e9e576c8a202206a49cc79fef691b`。198项Swift行为、
+37项原生AppKit、125项Consumer工具（Harness CLI可用，无跳过）、14项bridge、31项状态、
+Tier1–5各4项隔离回退、3项表情、5项站姿、浏览器runtime及仓库门禁通过。
+
+## 2026-09-20 task_1 原生静态垂直切片技术预览完成（等待视觉确认）
+
+在已发布Tier2–5基础上，当前未提交工作区新增独立`work_eating_task_1`身份和
+`pets/reimu/animations/eating/sources/task_1-static-v1/`资源包。它只通过唯一
+`ReimuFoodTier = min(activeTaskCount, 5)`策略在真实`working + activeTaskCount == 1`时选择；
+没有新增第二处数量档位策略。源图、运行时base和唯一帧均保持SHA-256
+`8dd9ff95bcfc2a891c997564496097328ec800d83b887ed08b54a608fe410e0e`，没有重绘、分割、
+缩放或整场摇动。这仍是125ms声明的一帧静态保持，不是完成的吃饭动画。
+
+Tier2动态循环切入Tier1等待当前1.6秒咀嚼循环边界；Tier1/3/4/5静帧离开不增加人为等待。
+failure、needs_input、点击、拖动和暂停立即抢占，恢复使用最新任务数。Tier1缺失、帧损坏、
+manifest或摘要不匹配只把Tier1降级为站姿，不影响Tier2–5、站姿、手动吃饭或托腮。
+`desktop/macos/build.py --work-tier-1`在视觉批准前强制`--preview`。
+
+Harness独立1.13/build15预览位于`build/reimu-tier1-runtime-v1/`，隔离snapshot覆盖
+Tier2动态切入Tier1、Tier1/2/3/4/5、count=9封顶Tier5、`needs_input`抢占及最新count=4恢复；
+5次Tier1捕获逐字节相同。198项Swift行为、37项原生AppKit、Tier1–5各4项资源加载/隔离
+回退及仓库门禁通过。MacOSX26.5.sdk全新编译、稳定ZIP全新解包及严格深层签名通过；没有
+读取真实provider、安装、commit、push或发布。
+
+原生160pt测量中Tier1可见框约118×137.5pt，底部支撑余量2.5pt且无裁切；Tier1–5同尺度
+对照图已生成。当前实现、技术和Consumer接入通过，Tier1原生大小、摆放、跨档占地、静态
+保持及展示的切换仍等待用户确认。
+
 ## 2026-09-20 task_5 原生静态切片源码收口（未安装）
 
 用户查看Harness `build/reimu-tier5-runtime-v1/runtime-preview/runtime-review.gif`、
